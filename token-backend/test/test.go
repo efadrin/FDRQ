@@ -4,10 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"log"
 	"time"
 
 	"github.com/efadrin/apitoken"
-	"gorm.io/driver/sqlite"
+	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -15,20 +17,41 @@ func main() {
 	// Parse command line arguments
 	// add option to create accounts
 
-	newDB := flag.Bool("new", false, "Create a new database")
-
-	flag.Parse()
-	args := flag.Args()
-	if len(args) < 1 {
-		flag.PrintDefaults()
-		os.Exit(1)
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file")
 	}
 
-	// Create a new client// github.com/mattn/go-sqlite3
-	db, err := gorm.Open(sqlite.Open(args[0]), &gorm.Config{
+	// Get the database URL from the environment variable
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		log.Fatalf("DATABASE_URL is not set in the environment")
+	}
+
+	// Parse command line arguments
+	newDB := flag.Bool("new", false, "Create a new database")
+	flag.Parse()
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 		FullSaveAssociations:                     true,
 	})
+	
+
+	// newDB := flag.Bool("new", false, "Create a new database")
+
+	// flag.Parse()
+	// args := flag.Args()
+	// if len(args) < 1 {
+	// 	flag.PrintDefaults()
+	// 	os.Exit(1)
+	// }
+
+	// db, err := gorm.Open(postgres.Open(args[0]), &gorm.Config{
+	// 	DisableForeignKeyConstraintWhenMigrating: true,
+	// 	FullSaveAssociations:                     true,
+	// })
 
 	if err != nil {
 		fmt.Println(err)
@@ -36,8 +59,11 @@ func main() {
 	}
 
 	if *newDB {
+		fmt.Println("Creating a new database...")
 		apitoken.InitDB(db)
 	}
+
+	fmt.Println("Database connection successful")
 
 	efadrin := apitoken.Organization{
 		Name: "Efadrin",

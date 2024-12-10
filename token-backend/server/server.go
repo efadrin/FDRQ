@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/efadrin/apitoken"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -14,7 +14,8 @@ func main() {
 	port := flag.Int("port", 8089, "Port to listen on")
 	flag.Parse()
 
-	db, err := gorm.Open(sqlite.Open(*database), &gorm.Config{
+	// update with postgres
+	db, err := gorm.Open(postgres.Open(*database), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 		FullSaveAssociations:                     true,
 	})
