@@ -16,15 +16,24 @@ type Server struct {
 	StartTime time.Time
 }
 
+// func NewServer(db *gorm.DB) *Server {
+// 	return &Server{
+// 		DB:        db,
+// 		StartTime: time.Now(),
+// 	}
+// }
+
 func NewServer(db *gorm.DB) *Server {
-	return &Server{
-		DB:        db,
-		StartTime: time.Now(),
-	}
+    server := &Server{
+        DB:        db,
+        StartTime: time.Now(),
+        Router:    mux.NewRouter(), // Initialize the router here
+    }
+    return server
 }
 
 func (s *Server) RunServer(port int) {
-	s.Router = mux.NewRouter()
+	// s.Router = mux.NewRouter()
 	s.Router.HandleFunc("/api/v1/users", s.CreateUser).Methods("POST")
 	s.Router.HandleFunc("/api/v1/users", s.GetUsers).Methods("GET")
 	s.Router.HandleFunc("/api/v1/users/{id}", s.GetUser).Methods("GET")
@@ -49,9 +58,13 @@ func (s *Server) RunServer(port int) {
 
 	s.StartTime = time.Now()
 
-	p := fmt.Sprintf(":%d", port)
+	// p := fmt.Sprintf(":%d", port)
+	fmt.Printf("Server starting on port %d...\n", port)
 
-	http.ListenAndServe(p, s.Router)
+	// http.ListenAndServe(p, s.Router)
+    
+    // Don't call ListenAndServe here since it's called in main
+    // s.Router.Handle("/", s.Router)
 }
 
 func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {

@@ -24,6 +24,8 @@ dist-ssr
 *.sql
 *.sqlite
 *.sqlite3
+*.postgres
+*.log
 *.db
 *.pdb
 *.cache

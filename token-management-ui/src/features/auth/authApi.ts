@@ -9,7 +9,7 @@ import type {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL || "/api",
+    baseUrl: import.meta.env.VITE_API_BASE_URL,
   }),
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginCredentials>({

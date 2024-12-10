@@ -13,6 +13,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useLoginMutation } from "../features/auth/authApi";
 import { useAppDispatch } from "../store/hooks";
 import { setUser } from "../features/auth/authSlice";
+import { useCreateUserMutation } from "../features/api/apiSlice";
 import image from "../assets/logo.jpeg";
 
 const Login: React.FC = () => {
@@ -22,24 +23,41 @@ const Login: React.FC = () => {
   const [login, { isLoading }] = useLoginMutation();
   const dispatch = useAppDispatch();
 
+  const [createUser] = useCreateUserMutation();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === "lars.mitchel@peelhunt.com" && password === "testuser") {
-      const hardCodedUser = {
-        id: 1,
-        name: "Abhishek Poswal",
-        email: "abhishek.poswal@efa.biz",
-      };
-      dispatch(setUser(hardCodedUser));
-    } else {
-      try {
-        const response = await login({ email, password }).unwrap();
-        dispatch(setUser(response.user));
-      } catch (err) {
-        console.error("Failed to login:", err);
-      }
+    try {
+      await createUser({
+        email,
+        password,
+        username: email, // or however you want to handle username
+      });
+      // Handle successful login
+      console.log("User created successfully");
+    } catch (err) {
+      console.error("Failed to login:", err);
     }
   };
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (email === "lars.mitchel@peelhunt.com" && password === "testuser") {
+  //     const hardCodedUser = {
+  //       id: 1,
+  //       name: "Abhishek Poswal",
+  //       email: "abhishek.poswal@efa.biz",
+  //     };
+  //     dispatch(setUser(hardCodedUser));
+  //   } else {
+  //     try {
+  //       const response = await login({ email, password }).unwrap();
+  //       dispatch(setUser(response.user));
+  //     } catch (err) {
+  //       console.error("Failed to login:", err);
+  //     }
+  //   }
+  // };
 
   return (
     <>
