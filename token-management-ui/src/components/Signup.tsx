@@ -10,50 +10,45 @@ import {
   Typography,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useLoginMutation } from "../features/auth/authApi";
+import { useCreateUserMutation } from "../features/api/apiSlice";
 import { useAppDispatch } from "../store/hooks";
 import { setUser } from "../features/auth/authSlice";
-// import { useCreateUserMutation } from "../features/api/apiSlice";
 import image from "../assets/logo.jpeg";
+import { Organization } from "../features/api/apiSlice";
 
-const Login: React.FC = () => {
+const Signup: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [organization, setOrganization] = useState<Organization | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [login, { isLoading }] = useLoginMutation();
+  const [createUser, { isLoading }] = useCreateUserMutation();
   const dispatch = useAppDispatch();
-
-  // const [createUser] = useCreateUserMutation();
-
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   try {
-  //     await createUser({
-  //       email,
-  //       password,
-  //       username: email, // or however you want to handle username
-  //     });
-  //     // Handle successful login
-  //     console.log("User created successfully");
-  //   } catch (err) {
-  //     console.error("Failed to login:", err);
-  //   }
-  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
     try {
-      const response = await login({ email, password }).unwrap();
-      dispatch(setUser(response.user));
-      console.log("Login successful", response.user);
+      const response = await createUser({
+        name,
+        email,
+        password,
+        username,
+        organization: organization?.id,
+      }).unwrap();
+      dispatch(setUser(response));
+      console.log("Signup successful", response);
     } catch (err) {
-      console.error("Failed to login:", err);
+      console.error("Failed to signup:", err);
     }
   };
 
   return (
     <>
-      {/* Logo in top left corner */}
       <Box
         sx={{
           position: "absolute",
@@ -61,7 +56,6 @@ const Login: React.FC = () => {
           left: 24,
         }}
       >
-        s
         <img
           src={image}
           alt="Peel Hunt Logo"
@@ -74,7 +68,6 @@ const Login: React.FC = () => {
         />
       </Box>
 
-      {/* Login Container */}
       <Container maxWidth="sm">
         <Box
           sx={{
@@ -94,7 +87,6 @@ const Login: React.FC = () => {
               overflow: "hidden",
             }}
           >
-            {/* Header Section */}
             <Box
               sx={{
                 bgcolor: "white",
@@ -112,11 +104,10 @@ const Login: React.FC = () => {
                   fontWeight: 400,
                 }}
               >
-                Sign in to your account
+                Create a new account
               </Typography>
             </Box>
 
-            {/* Form Section */}
             <Box
               component="form"
               onSubmit={handleSubmit}
@@ -146,6 +137,38 @@ const Login: React.FC = () => {
                 margin="normal"
                 required
                 fullWidth
+                id="username"
+                label="Username"
+                name="username"
+                autoComplete="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                  },
+                }}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="organization"
+                label="Organization"
+                name="organization"
+                autoComplete="organization"
+                value={organization}
+                onChange={(e) => setOrganization(e.target.value)}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                  },
+                }}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
                 name="password"
                 label="Password"
                 type={showPassword ? "text" : "password"}
@@ -153,6 +176,36 @@ const Login: React.FC = () => {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                  },
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        sx={{ color: "text.secondary" }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="confirmPassword"
+                label="Confirm Password"
+                type={showPassword ? "text" : "password"}
+                id="confirmPassword"
+                autoComplete="current-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 1.5,
@@ -191,7 +244,7 @@ const Login: React.FC = () => {
                   },
                 }}
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Signing up..." : "Sign Up"}
               </Button>
             </Box>
           </Paper>
@@ -201,4 +254,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default Signup;

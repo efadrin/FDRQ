@@ -1,6 +1,13 @@
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
 import { useAppSelector } from "./store/hooks";
 import Login from "./components/Login";
-import ApiKeyDisplay from "./components/APIKeyDisplay";
+import Signup from "./components/Signup";
+import ApiKeyDisplay from "./components/ApiKeyDisplay";
 import { Box, CssBaseline, ThemeProvider, createTheme } from "@mui/material";
 
 // Create a custom theme to match the Peel Hunt design
@@ -25,18 +32,34 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box
-        sx={{
-          minHeight: "100vh",
-          bgcolor: "background.default",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {!user ? <Login /> : <ApiKeyDisplay />}
-      </Box>
+      <Router>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            bgcolor: "background.default",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Routes>
+            <Route
+              path="/login"
+              element={!user ? <Login /> : <Navigate to="/apikey" />}
+            />
+            <Route
+              path="/signup"
+              element={!user ? <Signup /> : <Navigate to="/apikey" />}
+            />
+            <Route
+              path="/apikey"
+              element={user ? <ApiKeyDisplay /> : <Navigate to="/login" />}
+            />
+            <Route path="/" element={<Navigate to="/login" />} />
+          </Routes>
+        </Box>
+      </Router>
     </ThemeProvider>
   );
 }

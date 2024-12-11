@@ -4,6 +4,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 // Define types based on your Go structs
 interface User {
   id: number;
+  name: string;
   username: string;
   password: string;
   email: string;
@@ -11,7 +12,7 @@ interface User {
   organization_id: number;
 }
 
-interface Organization {
+export interface Organization {
   id: number;
   name: string;
   users?: User[];

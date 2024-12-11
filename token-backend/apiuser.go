@@ -139,3 +139,14 @@ func (u *User) GetTokens(db *gorm.DB) error {
 func (o *Organization) GetUsers(db *gorm.DB) error {
 	return db.Model(o).Association("Users").Find(&o.Users)
 }
+
+// Check Password
+func (u *User) CheckPassword(password string) bool {
+	return u.Password == password
+}
+
+// check password u.CheckPassword(s.DB)
+// func (u *User) CheckPassword(db *gorm.DB, password string) bool {
+// 	return u.Password == password
+// }
+
