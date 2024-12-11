@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
@@ -23,6 +24,14 @@ func NewServer(db *gorm.DB) *Server {
         Router:    mux.NewRouter(), // Initialize the router here
     }
     return server
+}
+
+var jwtKey = []byte("scret_key_is_super_secret")
+
+type Claims struct {
+    Username string `json:"username"`
+    Permissions string `json:"permissions"`
+    jwt.StandardClaims
 }
 
 func (s *Server) RunServer(port int) {
@@ -54,36 +63,6 @@ func (s *Server) RunServer(port int) {
     fmt.Printf("Server starting on port %d...\n", port)
 }
 
-// func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
-//     var u User
-//     err := json.NewDecoder(r.Body).Decode(&u)
-//     if err != nil {
-//         http.Error(w, err.Error(), http.StatusBadRequest)
-//         return
-//     }
-//     err = u.GetByEmail(s.DB)
-//     if err != nil {
-//         http.Error(w, err.Error(), http.StatusUnauthorized)
-//         return
-//     }
-//     if !u.CheckPassword(u.Password) {
-//         http.Error(w, "Invalid password", http.StatusUnauthorized)
-//         return
-//     }
-//     t := Token{
-//         Token:      u.Username + time.Now().String(),
-//         ExpiryDate: time.Now().Add(time.Hour * 24),
-//         UserID:     u.ID,
-//     }
-//     err = t.Create(s.DB)
-//     if err != nil {
-//         http.Error(w, err.Error(), http.StatusBadRequest)
-//         return
-//     }
-//     json.NewEncoder(w).Encode(t)
-// }
-
-
 func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
     var u User
     err := json.NewDecoder(r.Body).Decode(&u)
@@ -100,39 +79,31 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Invalid password", http.StatusUnauthorized)
         return
     }
-    t := Token{
-        Token:      u.Username + time.Now().String(),
-        ExpiryDate: time.Now().Add(time.Hour * 24),
-        UserID:     u.ID,
+
+    expirationTime := time.Now().Add(24 * time.Hour)
+    claims := &Claims{
+        Username: u.Username,
+        StandardClaims: jwt.StandardClaims{
+            ExpiresAt: expirationTime.Unix(),
+        },
     }
-    err = t.Create(s.DB)
+
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    tokenString, err := token.SignedString(jwtKey)
     if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
+        http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
+
     response := map[string]interface{}{
         "user": map[string]interface{}{
             "email": u.Email,
             "name":  u.Username,
         },
-        "token": t.Token,
+        "token": tokenString,
     }
     json.NewEncoder(w).Encode(response)
 }
-
-// func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
-//     var u User
-//     err := json.NewDecoder(r.Body).Decode(&u)
-//     if err != nil {
-//         http.Error(w, err.Error(), http.StatusBadRequest)
-//         return
-//     }
-//     err = u.Create(s.DB)
-//     if err != nil {
-//         http.Error(w, err.Error(), http.StatusBadRequest)
-//         return
-//     }
-// }
 
 func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
     var u User
@@ -154,22 +125,42 @@ func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(response)
 }
 
+// func (s *Server) CheckAuthorization(w http.ResponseWriter, r *http.Request) {
+//     token := r.Header.Get("Authorization")
+//     if token == "" {
+//         http.Error(w, "Token is required", http.StatusUnauthorized)
+//         return
+//     }
+//     var t Token
+//     s.DB.Where("token = ?", token).First(&t)
+//     if t.Token == "" {
+//         http.Error(w, "Invalid token", http.StatusUnauthorized)
+//         return
+//     }
+//     if t.ExpiryDate.Before(time.Now()) {
+//         http.Error(w, "Token is expired", http.StatusUnauthorized)
+//         return
+//     }
+// }
+
 func (s *Server) CheckAuthorization(w http.ResponseWriter, r *http.Request) {
-    token := r.Header.Get("Authorization")
-    if token == "" {
+    tokenStr := r.Header.Get("Authorization")
+    if tokenStr == "" {
         http.Error(w, "Token is required", http.StatusUnauthorized)
         return
     }
-    var t Token
-    s.DB.Where("token = ?", token).First(&t)
-    if t.Token == "" {
+
+    claims := &Claims{}
+    token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+        return jwtKey, nil
+    })
+
+    if err != nil || !token.Valid {
         http.Error(w, "Invalid token", http.StatusUnauthorized)
         return
     }
-    if t.ExpiryDate.Before(time.Now()) {
-        http.Error(w, "Token is expired", http.StatusUnauthorized)
-        return
-    }
+
+    // Token is valid, proceed with the request
 }
 
 func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {

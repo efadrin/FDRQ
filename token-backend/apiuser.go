@@ -4,6 +4,7 @@ import (
 	"time"
 
 	// import gorm orm
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -48,12 +49,29 @@ type Permission struct {
 	IsAdmin     bool     `json:"is_admin"`
 }
 
-func InitDB(db *gorm.DB) {
-	db.AutoMigrate(&User{}, &Organization{}, &Token{}, &Permission{})
+func (u *User) HashPassword() error {
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+    if err != nil {
+        return err
+    }
+    u.Password = string(hashedPassword)
+    return nil
+}
+
+func (u *User) CheckPassword(password string) bool {
+    err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+    return err == nil
 }
 
 func (u *User) Create(db *gorm.DB) error {
-	return db.Create(u).Error
+    if err := u.HashPassword(); err != nil {
+        return err
+    }
+    return db.Create(u).Error
+}
+
+func InitDB(db *gorm.DB) {
+	db.AutoMigrate(&User{}, &Organization{}, &Token{}, &Permission{})
 }
 
 func (u *User) Update(db *gorm.DB) error {
@@ -139,14 +157,3 @@ func (u *User) GetTokens(db *gorm.DB) error {
 func (o *Organization) GetUsers(db *gorm.DB) error {
 	return db.Model(o).Association("Users").Find(&o.Users)
 }
-
-// Check Password
-func (u *User) CheckPassword(password string) bool {
-	return u.Password == password
-}
-
-// check password u.CheckPassword(s.DB)
-// func (u *User) CheckPassword(db *gorm.DB, password string) bool {
-// 	return u.Password == password
-// }
-
