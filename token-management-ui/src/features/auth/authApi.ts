@@ -4,6 +4,7 @@ import type {
   LoginCredentials,
   LoginResponse,
   ApiKeyResponse,
+  LoginRequest,
 } from "../../types/auth";
 
 export const authApi = createApi({
@@ -12,7 +13,7 @@ export const authApi = createApi({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
   }),
   endpoints: (builder) => ({
-    login: builder.mutation<LoginResponse, LoginCredentials>({
+    login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
         url: "/login",
         method: "POST",

@@ -19,9 +19,10 @@ import { Organization } from "../features/api/apiSlice";
 const Signup: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [organization, setOrganization] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const [createUser, { isLoading }] = useCreateUserMutation();
   const dispatch = useAppDispatch();
@@ -35,10 +36,10 @@ const Signup: React.FC = () => {
     try {
       const response = await createUser({
         name,
+        username,
         email,
         password,
-        username,
-        organization: organization?.id,
+        // organization,
       }).unwrap();
       dispatch(setUser(response));
       console.log("Signup successful", response);
@@ -120,13 +121,12 @@ const Signup: React.FC = () => {
                 margin="normal"
                 required
                 fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="name"
+                label="Full Name"
+                name="name"
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 1.5,
@@ -143,6 +143,23 @@ const Signup: React.FC = () => {
                 autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                  },
+                }}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="email"
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 1.5,

@@ -1,9 +1,13 @@
+// apiuser.go
 package apitoken
 
 import (
+	"crypto/rand"
+	"fmt"
 	"time"
 
 	// import gorm orm
+
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -12,9 +16,10 @@ import (
 type User struct {
 	gorm.Model
 	ID               int           `json:"id"`
-	Username         string        `json:"username"`
+	Name			 string        `json:"name"`
+	Username	     string        `json:"username" gorm:"unique"`
 	Password         string        `json:"password"`
-	Email            string        `json:"email"`
+	Email            string        `json:"email" gorm:"unique"`
 	SecondFactorType string        `json:"second_factor_type"`
 	SecondFactorKey  string        `json:"second_factor_value"`
 	Permissions      string        `json:"permissions"`
@@ -31,14 +36,17 @@ type Organization struct {
 }
 
 type Token struct {
-	gorm.Model
-	ID          int           `json:"id"`
-	Token       string        `json:"token"`
-	ExpiryDate  time.Time     `json:"expiry_date"`
-	UserID      int           `json:"user_id"`
-	User        *User         `json:"-" gorm:"foreignKey:UserID"`
-	Permissions []*Permission `gorm:"many2many:token_permissions;"`
+    gorm.Model
+    ID          int           `json:"id"`
+    Token       string        `json:"token" gorm:"unique;not null"`
+    ExpiryDate  time.Time     `json:"expiry_date"`
+    UserID      int           `json:"user_id"`
+    User        *User         `json:"-" gorm:"foreignKey:UserID"`
+    IsAPIToken  bool          `json:"is_api_token"`
+    LastUsed    time.Time     `json:"last_used"`
+    Permissions []*Permission `gorm:"many2many:token_permissions;"`
 }
+
 
 type Permission struct {
 	gorm.Model
@@ -48,6 +56,42 @@ type Permission struct {
 	Tokens      []*Token `gorm:"many2many:token_permissions;"`
 	IsAdmin     bool     `json:"is_admin"`
 }
+
+func GenerateAPIToken() string {
+    // Generate a random 32-byte token
+    b := make([]byte, 32)
+    if _, err := rand.Read(b); err != nil {
+        return ""
+    }
+    return fmt.Sprintf("%x", b)
+}
+
+
+// Add these methods to Token struct
+func (t *Token) IsValid() bool {
+    return t.ExpiryDate.After(time.Now())
+}
+
+func (t *Token) UpdateLastUsed(db *gorm.DB) error {
+    t.LastUsed = time.Now()
+    return db.Save(t).Error
+}
+
+func CreateAPIToken(db *gorm.DB, userID int) (*Token, error) {
+    token := &Token{
+        Token:      GenerateAPIToken(),
+        ExpiryDate: time.Now().AddDate(1, 0, 0), // Token valid for 1 year
+        UserID:     userID,
+        IsAPIToken: true,
+        LastUsed:   time.Now(),
+    }
+    
+    if err := db.Create(token).Error; err != nil {
+        return nil, err
+    }
+    return token, nil
+}
+
 
 func (u *User) HashPassword() error {
     hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
@@ -60,6 +104,8 @@ func (u *User) HashPassword() error {
 
 func (u *User) CheckPassword(password string) bool {
     err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+	fmt.Println(err)
+	fmt.Println(u.Password, "and", password)
     return err == nil
 }
 

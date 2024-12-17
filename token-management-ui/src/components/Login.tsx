@@ -8,52 +8,45 @@ import {
   IconButton,
   Paper,
   Typography,
+  Alert,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useLoginMutation } from "../features/auth/authApi";
 import { useAppDispatch } from "../store/hooks";
-import { setUser } from "../features/auth/authSlice";
-// import { useCreateUserMutation } from "../features/api/apiSlice";
+import { setUser, setApiToken } from "../features/auth/authSlice";
 import image from "../assets/logo.jpeg";
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState("");
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [login, { isLoading }] = useLoginMutation();
   const dispatch = useAppDispatch();
 
-  // const [createUser] = useCreateUserMutation();
-
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   try {
-  //     await createUser({
-  //       email,
-  //       password,
-  //       username: email, // or however you want to handle username
-  //     });
-  //     // Handle successful login
-  //     console.log("User created successfully");
-  //   } catch (err) {
-  //     console.error("Failed to login:", err);
-  //   }
-  // };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
     try {
-      const response = await login({ email, password }).unwrap();
+      const response = await login({
+        username_or_email: usernameOrEmail,
+        password,
+      }).unwrap();
       dispatch(setUser(response.user));
-      console.log("Login successful", response.user);
-    } catch (err) {
+      dispatch(setApiToken(response.api_token)); // Store the API token
+      console.log("Login successful", response);
+    } catch (err: any) {
       console.error("Failed to login:", err);
+      setErrorMessage(
+        err.data?.details ||
+          err.data?.error ||
+          "Failed to login. Please check your credentials."
+      );
     }
   };
 
   return (
     <>
-      {/* Logo in top left corner */}
       <Box
         sx={{
           position: "absolute",
@@ -61,7 +54,6 @@ const Login: React.FC = () => {
           left: 24,
         }}
       >
-        s
         <img
           src={image}
           alt="Peel Hunt Logo"
@@ -74,7 +66,6 @@ const Login: React.FC = () => {
         />
       </Box>
 
-      {/* Login Container */}
       <Container maxWidth="sm">
         <Box
           sx={{
@@ -94,7 +85,6 @@ const Login: React.FC = () => {
               overflow: "hidden",
             }}
           >
-            {/* Header Section */}
             <Box
               sx={{
                 bgcolor: "white",
@@ -116,7 +106,6 @@ const Login: React.FC = () => {
               </Typography>
             </Box>
 
-            {/* Form Section */}
             <Box
               component="form"
               onSubmit={handleSubmit}
@@ -125,17 +114,23 @@ const Login: React.FC = () => {
                 bgcolor: "white",
               }}
             >
+              {errorMessage && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {errorMessage}
+                </Alert>
+              )}
+
               <TextField
                 margin="normal"
                 required
                 fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
+                id="username_or_email"
+                label="Username or Email"
+                name="username_or_email"
                 autoComplete="email"
                 autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={usernameOrEmail}
+                onChange={(e) => setUsernameOrEmail(e.target.value)}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 1.5,
