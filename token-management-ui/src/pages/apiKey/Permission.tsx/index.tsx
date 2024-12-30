@@ -20,8 +20,9 @@ import {
   Container
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import PermissionTableCell from "@components/PermissionTable/PermissonRow";
+import PermissionTableCell from "@components/PermissionTable/PermissionCell";
 import CenteredLayout from "@components/Layouts/CenteredLayout";
+import PermissionTableWrapper from "@components/PermissionTable";
 
 const permissionsData = [
   {
@@ -106,16 +107,7 @@ const PermissionProfile = () => {
     <CenteredLayout>
       <Container maxWidth='md'>
         <Stack gap={2}>
-          <Box
-            sx={{
-              borderWidth: 1,
-              borderColor: "grey.100",
-              borderStyle: "solid",
-              borderBottomLeftRadius: 12,
-              borderBottomRightRadius: 12,
-              overflow: "hidden"
-            }}
-          >
+          <PermissionTableWrapper>
             <Box padding={2}>
               <Typography fontWeight='bold' sx={{ marginBottom: 2 }}>
                 Create an API Permissions Profile
@@ -140,7 +132,7 @@ const PermissionProfile = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-          </Box>
+          </PermissionTableWrapper>
           <Stack direction='row' justifyContent='space-between'>
             <Button variant='contained' color='primary'>
               Save Profile

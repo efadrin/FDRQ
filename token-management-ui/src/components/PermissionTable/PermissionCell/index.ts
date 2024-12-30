@@ -40,7 +40,8 @@ const PermissionTableCell = styled(TableCell, { shouldForwardProp })<StyledTable
       isParentPermission,
       isToggleCell
     }),
-    borderBottomWidth: isLastPermission ? 1 : 0
+    borderBottomWidth: isLastPermission ? 1 : 0,
+    borderColor: theme.palette.grey[100]
   })
 );
 

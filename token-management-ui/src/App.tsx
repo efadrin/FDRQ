@@ -34,6 +34,7 @@ function App() {
             <Route element={<AuthStatusGuard redirectRoute='/' requiredAuthState={true} />}>
               <Route path='/apikey' element={<ApiKeyDisplay />} />
             </Route>
+            {/* Will move this to another place after we have proper screen flow */}
             <Route path='/permissionProfile' element={<PermissionProfile />} />
 
             <Route path='*' element={<Navigate to='/' />} />
