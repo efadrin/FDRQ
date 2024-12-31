@@ -11,9 +11,15 @@ export interface LoginCredentials {
 
 export interface LoginResponse {
   user: User;
-  token: string;
+  token: string; // JWT token
+  api_token: string; // API token
 }
 
 export interface ApiKeyResponse {
   apiKey: string;
+}
+
+export interface LoginRequest {
+  username_or_email: string;
+  password: string;
 }

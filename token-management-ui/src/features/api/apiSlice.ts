@@ -8,8 +8,8 @@ interface User {
   username: string;
   password: string;
   email: string;
-  organization?: Organization;
-  organization_id: number;
+  organization?: string;
+  // organization_id: number;
 }
 
 export interface Organization {
@@ -54,7 +54,7 @@ export const apiSlice = createApi({
     getUser: builder.query<User, number>({
       query: (id) => `users/${id}`,
     }),
-    createUser: builder.mutation<void, Partial<User>>({
+    createUser: builder.mutation<User, Partial<User>>({
       query: (user) => ({
         url: "users",
         method: "POST",

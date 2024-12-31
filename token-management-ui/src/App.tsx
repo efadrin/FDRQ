@@ -1,66 +1,47 @@
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Navigate,
-} from "react-router-dom";
-import { useAppSelector } from "./store/hooks";
-import Login from "./components/Login";
-import Signup from "./components/Signup";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import ApiKeyDisplay from "./components/ApiKeyDisplay";
-import { Box, CssBaseline, ThemeProvider, createTheme } from "@mui/material";
-
-// Create a custom theme to match the Peel Hunt design
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#4FD1C5",
-      dark: "#38B2AC",
-    },
-    background: {
-      default: "#f8fafc",
-    },
-  },
-  typography: {
-    fontFamily: '"Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
-  },
-});
+import ThemeWrapper from "./theme";
+import LoginPage from "./pages/auth/LoginPage";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import AuthLayout from "@components/Layouts/AuthLayout";
+import Signup from "./pages/auth/Signup";
+import VerificationCode from "./pages/auth/ForgotPassword/VerifyCode";
+import UIOverlayProvider from "./contexts/UIOverlayContext/UIOverlayProvider";
+import AuthStatusGuard from "@components/RouteGuard/AuthStatusGuard";
+import PermissionProfile from "@pages/apiKey/Permission.tsx";
 
 function App() {
-  const user = useAppSelector((state) => state.auth.user);
-
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Box
-          sx={{
-            minHeight: "100vh",
-            bgcolor: "background.default",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
+    <ThemeWrapper>
+      <UIOverlayProvider>
+        <Router>
           <Routes>
             <Route
-              path="/login"
-              element={!user ? <Login /> : <Navigate to="/apikey" />}
-            />
-            <Route
-              path="/signup"
-              element={!user ? <Signup /> : <Navigate to="/apikey" />}
-            />
-            <Route
-              path="/apikey"
-              element={user ? <ApiKeyDisplay /> : <Navigate to="/login" />}
-            />
-            <Route path="/" element={<Navigate to="/login" />} />
+              path='/'
+              element={
+                <AuthStatusGuard
+                  redirectRoute='/apikey'
+                  requiredAuthState={false}
+                  layout={AuthLayout}
+                />
+              }
+            >
+              <Route path='/' element={<LoginPage />} />
+              <Route path='/signup' element={<Signup />} />
+              <Route path='/forgotPassword' element={<ForgotPassword />} />
+              <Route path='/forgotPassword/verify' element={<VerificationCode />} />
+            </Route>
+            <Route element={<AuthStatusGuard redirectRoute='/' requiredAuthState={true} />}>
+              <Route path='/apikey' element={<ApiKeyDisplay />} />
+            </Route>
+            {/* Will move this to another place after we have proper screen flow */}
+            <Route path='/permissionProfile' element={<PermissionProfile />} />
+
+            <Route path='*' element={<Navigate to='/' />} />
           </Routes>
-        </Box>
-      </Router>
-    </ThemeProvider>
+        </Router>
+      </UIOverlayProvider>
+    </ThemeWrapper>
   );
 }
 

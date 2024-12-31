@@ -1,15 +1,18 @@
 // src/features/auth/authSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { User } from "../../types/auth";
+import { LoginResponse, User } from "@shared-types/auth";
+import { RootState } from "@store/store";
 
 interface AuthState {
   user: User | null;
-  apiKey: string | null;
+  apiToken: string | null; // Changed from apiKey to apiToken
+  token: string | null;
 }
 
 const initialState: AuthState = {
   user: null,
-  apiKey: null,
+  apiToken: null,
+  token: null
 };
 
 const authSlice = createSlice({
@@ -19,15 +22,24 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<User | null>) => {
       state.user = action.payload;
     },
-    setApiKey: (state, action: PayloadAction<string | null>) => {
-      state.apiKey = action.payload;
+    setApiToken: (state, action: PayloadAction<string | null>) => {
+      // Changed from setApiKey
+      state.apiToken = action.payload;
+    },
+    saveLoginResponse: (state, action: PayloadAction<LoginResponse>) => {
+      const { api_token, token, user } = action.payload;
+      state.user = user;
+      state.apiToken = api_token;
+      state.token = token;
     },
     logout: (state) => {
       state.user = null;
-      state.apiKey = null;
-    },
-  },
+      state.token = null;
+      state.apiToken = null;
+    }
+  }
 });
 
-export const { setUser, setApiKey, logout } = authSlice.actions;
+export const { setUser, setApiToken, logout, saveLoginResponse } = authSlice.actions;
 export default authSlice.reducer;
+export const selectAuth = (state: RootState) => state.auth;
