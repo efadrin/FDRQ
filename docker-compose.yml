@@ -1,0 +1,72 @@
+services:
+  slate:
+    build:
+      context: ./slate
+      dockerfile: Dockerfile
+    container_name: slate
+    ports:
+      - "4567:4567"
+    restart: unless-stopped
+    networks:
+      fdrq_network:
+        ipv4_address: "10.2.0.5"
+
+  frontend:
+    build:
+      context: ./token-management-ui
+      dockerfile: Dockerfile.prod
+      args:
+        - VITE_API_BASE_URL=/api/
+    container_name: frontend
+    image: fdrq-frontend:latest
+    restart: always
+    volumes:
+      - /etc/ssl/certs/nginx-selfsigned.crt:/etc/ssl/certs/nginx-selfsigned.crt
+      - /etc/ssl/private/nginx-selfsigned.key:/etc/ssl/private/nginx-selfsigned.key
+      - /etc/ssl/certs/dhparam.pem:/etc/ssl/certs/dhparam.pem
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      fdrq_network:
+        ipv4_address: "10.2.0.4"
+
+  backend:
+    build:
+      context: ./token-backend
+      dockerfile: Dockerfile.prod
+    environment:
+      EFA_ENDPOINT: https://hkg.efadrin.biz/webapi/4/dev/efawebapi.asmx
+      EFA_AUTH_TOKEN: AF10F8FF-D69C-4653-BAD8-39777C52E7A1
+      DATABASE_URL: postgres://fdrq_admin:12345678x@X@10.2.0.2:5432/fdrq?sslmode=disable
+    container_name: backend
+    restart: always
+    ports:
+      - 8089:8089
+    networks:
+      fdrq_network:
+        ipv4_address: "10.2.0.3"
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: fdrq_admin
+      POSTGRES_PASSWORD: 12345678x@X
+      POSTGRES_DB: fdrq
+    container_name: db
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+    networks:
+      fdrq_network:
+        ipv4_address: "10.2.0.2"
+
+networks:
+  fdrq_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: "10.2.0.0/27"
