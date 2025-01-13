@@ -46,7 +46,7 @@ url = 'http://localhost:8089/api/v1/users'
 
 > Make sure to replace `meowmeowmeow` with your API key.
 
-PeelHunt uses API keys to allow access to the API. You can register a new PeelHunt API key at our [developer portal](http://localhost:5173/login).
+PeelHunt uses API keys to allow access to the API. You can register a new PeelHunt API key at our [developer portal](http://172.183.157.113:5173/login).
 
 PeelHunt expects for the API key to be included in all API requests to the server in a header that looks like the following:
 
