@@ -64,8 +64,8 @@ type DocSearchRequest struct {
 
 // Response structures
 type DocSearchResponse struct {
-	Header    Header      `json:"header"`
-	Documents []Document  `json:"documents"`
+	Header    Header     `json:"header"`
+	Documents []Document `json:"documents"`
 }
 
 type Header struct {
@@ -75,21 +75,21 @@ type Header struct {
 }
 
 type Document struct {
-	DocGUID        string    `json:"docGuid"`
-	DocID          int       `json:"docId"`
-	DocType        DocType   `json:"docType"`
-	RIXMLType      string    `json:"rixmlType"`
-	Markets        []Market  `json:"markets"`
-	Sectors        []Sector  `json:"sectors,omitempty"`
-	Industries     []Industry`json:"industries,omitempty"`
-	Authors        []Author  `json:"authors"`
-	Corps          []Corp    `json:"corps,omitempty"`
-	DocTitle       string    `json:"docTitle"`
-	DocSynopsis    string    `json:"docSynopsis,omitempty"`
-	PublicationDate string   `json:"publicationDate"`
-	PublicationDateTime string `json:"publicationDateTime"`
-	Rank           int       `json:"rank"`
-	IsCompendium   bool      `json:"isCompendium"`
+	DocGUID             string     `json:"docGuid"`
+	DocID               int        `json:"docId"`
+	DocType             DocType    `json:"docType"`
+	RIXMLType           string     `json:"rixmlType"`
+	Markets             []Market   `json:"markets"`
+	Sectors             []Sector   `json:"sectors,omitempty"`
+	Industries          []Industry `json:"industries,omitempty"`
+	Authors             []Author   `json:"authors"`
+	Corps               []Corp     `json:"corps,omitempty"`
+	DocTitle            string     `json:"docTitle"`
+	DocSynopsis         string     `json:"docSynopsis,omitempty"`
+	PublicationDate     string     `json:"publicationDate"`
+	PublicationDateTime string     `json:"publicationDateTime"`
+	Rank                int        `json:"rank"`
+	IsCompendium        bool       `json:"isCompendium"`
 }
 
 type DocType struct {
@@ -118,44 +118,43 @@ type Corp struct {
 
 // XML response structures for parsing
 type XMLResponse struct {
-	XMLName xml.Name `xml:"Envelope"`
-	Body    struct {
-		XMLName              xml.Name `xml:"Body"`
-		EFADocSearchResponse struct {
-			XMLName            xml.Name `xml:"EFADocSearchResponse"`
-			EFADocSearchResult string   `xml:",chardata"`
-		} `xml:"EFADocSearchResponse"`
-	} `xml:"Body"`
+	Body SoapBody `xml:"Body"`
 }
-
+type SoapBody struct {
+	EFADocSearchResponse EFADocSearchResponse `xml:"EFADocSearchResponse"`
+}
+type EFADocSearchResponse struct {
+	EFADocSearchResult EFADocSearchResult `xml:"EFADocSearchResult"`
+}
 type EFADocSearchResult struct {
-	XMLName   xml.Name    `xml:"EFADocSearch"`
-	Header    XMLHeader   `xml:"Header"`
-	DocSearch []XMLDocument `xml:"DocSearch"`
+	EFADocSearch EFADocSearch `xml:"EFADocSearch"`
 }
-
-type XMLHeader struct {
+type EFADocSearch struct {
+	Header    EFADocSearch_Header `xml:"Header"`
+	DocSearch []DocSearch         `xml:"DocSearch"`
+}
+type EFADocSearch_Header struct {
 	RecordCount int    `xml:"RecordCount"`
 	StatusCode  int    `xml:"StatusCode"`
 	StatusMsg   string `xml:"StatusMsg"`
 }
 
-type XMLDocument struct {
-	DocGUID        string      `xml:"DocGUID"`
-	DocID          int         `xml:"DocID"`
-	DocType        XMLDocType  `xml:"DocType"`
-	RIXMLType      string      `xml:"RIXMLType"`
-	Markets        XMLMarkets  `xml:"Markets"`
-	Sectors        XMLSectors  `xml:"Sectors"`
-	Industries     XMLIndustries `xml:"Industries"`
-	Authors        XMLAuthors  `xml:"Authors"`
-	Corps          XMLCorps    `xml:"Corps"`
-	DocTitle       string      `xml:"DocTitle"`
-	DocSynopsis    string      `xml:"DocSynopsis"`
-	PublicationDate string     `xml:"PublicationDate"`
-	PublicationDateTime string `xml:"PublicationDateTime"`
-	Rank           int         `xml:"Rank"`
-	IsCompendium   int         `xml:"IsCompendium"`
+type DocSearch struct {
+	DocGUID             string        `xml:"DocGUID"`
+	DocID               int           `xml:"DocID"`
+	DocType             XMLDocType    `xml:"DocType"`
+	RIXMLType           string        `xml:"RIXMLType"`
+	Markets             XMLMarkets    `xml:"Markets"`
+	Sectors             XMLSectors    `xml:"Sectors"`
+	Industries          XMLIndustries `xml:"Industries"`
+	Authors             XMLAuthors    `xml:"Authors"`
+	Corps               XMLCorps      `xml:"Corps"`
+	DocTitle            string        `xml:"DocTitle"`
+	DocSynopsis         string        `xml:"DocSynopsis"`
+	PublicationDate     string        `xml:"PublicationDate"`
+	PublicationDateTime string        `xml:"PublicationDateTime"`
+	Rank                int           `xml:"Rank"`
+	IsCompendium        int           `xml:"IsCompendium"`
 }
 
 type XMLDocType struct {
@@ -212,44 +211,50 @@ type soapEnvelope struct {
 }
 
 type soapBody struct {
-	XMLName      xml.Name     `xml:"soap:Body"`
+	XMLName      xml.Name `xml:"soap:Body"`
 	EFADocSearch efaDocSearch
 }
 
 type efaDocSearch struct {
-	XMLName       xml.Name `xml:"EFADocSearch"`
-	Xmlns         string   `xml:"xmlns,attr"`
-	AccountName   string
-	SearchText    string
-	SearchType    string
-	SearchTop     string
-	LanguageID    string
-	DocGUID       string
-	ReportTypeID  string
+	XMLName        xml.Name `xml:"EFADocSearch"`
+	Xmlns          string   `xml:"xmlns,attr"`
+	AccountName    string
+	SearchText     string
+	SearchType     string
+	SearchTop      string
+	LanguageID     string
+	DocGUID        string
+	ReportTypeID   string
 	ReportTypeName string
-	MarketIDs     string
-	SectorIDs     string
-	IndustryIDs   string
-	AuthorIDs     string
-	CorpIDs       string
-	DateFrom      string
-	DateTo        string
-	OrderNewToOld string
-	AuthToken     string
+	MarketIDs      string
+	SectorIDs      string
+	IndustryIDs    string
+	AuthorIDs      string
+	CorpIDs        string
+	DateFrom       string
+	DateTo         string
+	OrderNewToOld  string
+	AuthToken      string
 }
 
 // Convert XML response to JSON structure
 func convertToJSON(xmlData []byte) (*DocSearchResponse, error) {
 	var xmlResp XMLResponse
+	//var v interface{}
 	if err := xml.Unmarshal(xmlData, &xmlResp); err != nil {
 		return nil, fmt.Errorf("error unmarshaling SOAP response: %v", err)
 	}
 
-	var efaResult EFADocSearchResult
-	if err := xml.Unmarshal([]byte(xmlResp.Body.EFADocSearchResponse.EFADocSearchResult), &efaResult); err != nil {
-		return nil, fmt.Errorf("error unmarshaling search result: %v", err)
-	}
+	fmt.Printf("DocSearch - EFA Response Body: %d\n", xmlResp.Body.EFADocSearchResponse.EFADocSearchResult.EFADocSearch.Header.RecordCount)
 
+	/*
+		var efaResult EFADocSearchResult
+		if err := xml.Unmarshal([]byte(xmlResp.Body.EFADocSearchResponse.EFADocSearchResult), &efaResult); err != nil {
+			return nil, fmt.Errorf("error unmarshaling search result: %v", err)
+		}
+	*/
+
+	var efaResult EFADocSearch = xmlResp.Body.EFADocSearchResponse.EFADocSearchResult.EFADocSearch
 	response := &DocSearchResponse{
 		Header: Header{
 			RecordCount: efaResult.Header.RecordCount,
@@ -261,16 +266,16 @@ func convertToJSON(xmlData []byte) (*DocSearchResponse, error) {
 
 	for i, xmlDoc := range efaResult.DocSearch {
 		doc := Document{
-			DocGUID:        xmlDoc.DocGUID,
-			DocID:          xmlDoc.DocID,
-			DocType:        DocType{ID: xmlDoc.DocType.ID},
-			RIXMLType:      xmlDoc.RIXMLType,
-			DocTitle:       xmlDoc.DocTitle,
-			DocSynopsis:    xmlDoc.DocSynopsis,
-			PublicationDate: xmlDoc.PublicationDate,
+			DocGUID:             xmlDoc.DocGUID,
+			DocID:               xmlDoc.DocID,
+			DocType:             DocType{ID: xmlDoc.DocType.ID},
+			RIXMLType:           xmlDoc.RIXMLType,
+			DocTitle:            xmlDoc.DocTitle,
+			DocSynopsis:         xmlDoc.DocSynopsis,
+			PublicationDate:     xmlDoc.PublicationDate,
 			PublicationDateTime: xmlDoc.PublicationDateTime,
-			Rank:           xmlDoc.Rank,
-			IsCompendium:   xmlDoc.IsCompendium == 1,
+			Rank:                xmlDoc.Rank,
+			IsCompendium:        xmlDoc.IsCompendium == 1,
 		}
 
 		// Convert Markets
@@ -302,117 +307,133 @@ func convertToJSON(xmlData []byte) (*DocSearchResponse, error) {
 	}
 
 	return response, nil
+	//return nil, nil
 }
 
 // API handler
-// In efaapi.go
 
 func DocSearchHandler(config Config, keyStore APIKeyStore) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        // Get user and token from context (set by middleware)
-        userID := r.Context().Value("user_id").(int)
-        token := r.Context().Value("token").(*Token)
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get user and token from context (set by middleware)
+		userID := r.Context().Value("user_id").(int)
+		token := r.Context().Value("token").(*Token)
 
-        // Log the API request for auditing
-        fmt.Printf("DocSearch request from user %d using token %s\n", userID, token.Token)
+		// Log the API request for auditing
+		fmt.Printf("DocSearch request from user %d using token %s\n", userID, token.Token)
 
-        // Check HTTP method
-        if r.Method != http.MethodPost {
-            http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-            return
-        }
+		// Check HTTP method
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
-        // Parse request body
-        var req DocSearchRequest
-        if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-            http.Error(w, "Invalid request body", http.StatusBadRequest)
-            return
-        }
+		// Parse request body
+		var req DocSearchRequest
+		bodyReq, err1 := io.ReadAll(r.Body)
 
-        // Add the user's token to request tracking (you might want to log this)
-        req.AccountName = fmt.Sprintf("%s-user-%d", req.AccountName, userID)
+		defer r.Body.Close()
+		if err1 != nil {
+			http.Error(w, "Invalid request body: null", http.StatusBadRequest)
+			return
+		}
 
-        // Create SOAP request
-        soapReq := soapEnvelope{
-            Soap: "http://schemas.xmlsoap.org/soap/envelope/",
-            Xsi:  "http://www.w3.org/2001/XMLSchema-instance",
-            Xsd:  "http://www.w3.org/2001/XMLSchema",
-            Body: soapBody{
-                EFADocSearch: efaDocSearch{
-                    Xmlns:          "http://www.edefa.biz/",
-                    AccountName:    req.AccountName,
-                    SearchText:     req.SearchText,
-                    SearchType:     req.SearchType,
-                    SearchTop:      req.SearchTop,
-                    LanguageID:     req.LanguageID,
-                    DocGUID:        req.DocGUID,
-                    ReportTypeID:   req.ReportTypeID,
-                    ReportTypeName: req.ReportTypeName,
-                    MarketIDs:      req.MarketIDs,
-                    SectorIDs:      req.SectorIDs,
-                    IndustryIDs:    req.IndustryIDs,
-                    AuthorIDs:      req.AuthorIDs,
-                    CorpIDs:        req.CorpIDs,
-                    DateFrom:       req.DateFrom,
-                    DateTo:         req.DateTo,
-                    OrderNewToOld:  req.OrderNewToOld,
-                    AuthToken:      config.AuthToken,
-                },
-            },
-        }
+		fmt.Printf("DocSearch Body %s\n", bodyReq)
 
-        // Convert to XML
-        xmlData, err := xml.MarshalIndent(soapReq, "", "  ")
-        if err != nil {
-            http.Error(w, "Error creating request", http.StatusInternalServerError)
-            return
-        }
+		//if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err2 := json.Unmarshal(bodyReq, &req); err2 != nil {
+			//fmt.Printf("DocSearch |  %s\n", err.Error())
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		fmt.Printf("DocSearch Body Account %s\n", req.AccountName)
+		// Add the user's token to request tracking (you might want to log this)
 
-        // Create HTTP client with timeout
-        client := &http.Client{
-            Timeout: 30 * time.Second,
-        }
+		//req.AccountName = fmt.Sprintf("%s-user-%d", req.AccountName, userID)
 
-        // Create request to EFA API
-        efaReq, err := http.NewRequest("POST", config.EFAEndpoint, bytes.NewBuffer(xmlData))
-        if err != nil {
-            http.Error(w, "Error creating request", http.StatusInternalServerError)
-            return
-        }
+		// Create SOAP request
+		soapReq := soapEnvelope{
+			Soap: "http://schemas.xmlsoap.org/soap/envelope/",
+			Xsi:  "http://www.w3.org/2001/XMLSchema-instance",
+			Xsd:  "http://www.w3.org/2001/XMLSchema",
+			Body: soapBody{
+				EFADocSearch: efaDocSearch{
+					Xmlns:          "http://www.edefa.biz/",
+					AccountName:    req.AccountName,
+					SearchText:     req.SearchText,
+					SearchType:     req.SearchType,
+					SearchTop:      req.SearchTop,
+					LanguageID:     req.LanguageID,
+					DocGUID:        req.DocGUID,
+					ReportTypeID:   req.ReportTypeID,
+					ReportTypeName: req.ReportTypeName,
+					MarketIDs:      req.MarketIDs,
+					SectorIDs:      req.SectorIDs,
+					IndustryIDs:    req.IndustryIDs,
+					AuthorIDs:      req.AuthorIDs,
+					CorpIDs:        req.CorpIDs,
+					DateFrom:       req.DateFrom,
+					DateTo:         req.DateTo,
+					OrderNewToOld:  req.OrderNewToOld,
+					AuthToken:      config.AuthToken,
+				},
+			},
+		}
 
-        efaReq.Header.Set("Content-Type", "text/xml; charset=utf-8")
-        efaReq.Header.Set("SOAPAction", "http://www.edefa.biz/EFADocSearch")
+		// Convert to XML
+		xmlData, err := xml.MarshalIndent(soapReq, "", "  ")
+		if err != nil {
+			http.Error(w, "Error creating request", http.StatusInternalServerError)
+			return
+		}
 
-        // Make request to EFA API
-        resp, err := client.Do(efaReq)
-        if err != nil {
-            http.Error(w, "Error calling EFA API", http.StatusInternalServerError)
-            return
-        }
-        defer resp.Body.Close()
+		// Create HTTP client with timeout
+		client := &http.Client{
+			Timeout: 30 * time.Second,
+		}
 
-        // Read response
-        body, err := io.ReadAll(resp.Body)
-        if err != nil {
-            http.Error(w, "Error reading response", http.StatusInternalServerError)
-            return
-        }
+		// Create request to EFA API
+		efaReq, err := http.NewRequest("POST", config.EFAEndpoint, bytes.NewBuffer(xmlData))
+		if err != nil {
+			http.Error(w, "Error creating request", http.StatusInternalServerError)
+			return
+		}
 
-        // Convert XML to JSON
-        jsonResponse, err := convertToJSON(body)
-        if err != nil {
-            http.Error(w, fmt.Sprintf("Error converting response: %v", err), http.StatusInternalServerError)
-            return
-        }
+		efaReq.Header.Set("Content-Type", "text/xml; charset=utf-8")
+		efaReq.Header.Set("SOAPAction", "http://www.edefa.biz/EFADocSearch")
 
-        // Send JSON response
-        w.Header().Set("Content-Type", "application/json")
-        json.NewEncoder(w).Encode(jsonResponse)
+		// Make request to EFA API
+		resp, err := client.Do(efaReq)
+		if err != nil {
+			http.Error(w, "Error calling EFA API", http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
 
-        // Log successful request completion
-        fmt.Printf("Completed DocSearch request for user %d with %d results\n", 
-            userID, jsonResponse.Header.RecordCount)
-    }
+		// Read response
+		//dec := xml.NewDecoder(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+
+		if err != nil {
+			http.Error(w, "Error reading response", http.StatusInternalServerError)
+			return
+		}
+		//str1 := string(body[:])
+		//fmt.Printf("DocSearch - EFA Response Body: %sHET", str1)
+		// Convert XML to JSON
+		jsonResponse, err := convertToJSON(body)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error converting response: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		// Send JSON response
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(jsonResponse)
+
+		// Log successful request completion
+		fmt.Printf("Completed DocSearch request for user %d with %d results\n",
+			userID, jsonResponse.Header.RecordCount)
+	}
 }
 
 func main() {
