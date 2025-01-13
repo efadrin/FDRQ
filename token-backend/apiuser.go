@@ -57,6 +57,17 @@ type Permission struct {
 	IsAdmin     bool     `json:"is_admin"`
 }
 
+
+
+func GetAPITokenByUser(db *gorm.DB, userID int) (*Token, error) {
+    var token Token
+    err := db.Where("user_id = ? AND is_api_token = ? AND expiry_date > ?", userID, true, time.Now()).First(&token).Error
+    if err != nil {
+        return nil, err
+    }
+    return &token, nil
+}
+
 func GenerateAPIToken() string {
     // Generate a random 32-byte token
     b := make([]byte, 32)

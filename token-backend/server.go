@@ -157,6 +157,23 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // Check if API token already exists in the database and hasn't expired. If so, use it.
+    existingToken, err := GetAPITokenByUser(s.DB, dbUser.ID)
+    if err == nil && existingToken.ExpiryDate.After(time.Now()) {
+        // Send successful response with both JWT and existing API token
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(map[string]interface{}{
+            "user": map[string]interface{}{
+                "email":    dbUser.Email,
+                "username": dbUser.Username,
+                "name":     dbUser.Name,
+            },
+            "token":     tokenString, // JWT token
+            "api_token": existingToken.Token,
+        })
+        return
+    }
+
     // Generate API token
     apiToken, err := CreateAPIToken(s.DB, dbUser.ID)
     if err != nil {
