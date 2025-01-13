@@ -4,11 +4,12 @@ import { useCreateUserMutation } from "@features/api/apiSlice";
 import PasswordTextField from "@components/Input/PasswordTextField";
 import { useNavigate } from "react-router-dom";
 import useUIOverlay from "@hooks/useUIOveray";
+import useNotification from "@hooks/useNotification";
 
 const Signup = () => {
   const navigate = useNavigate();
   const { toggleLoading } = useUIOverlay();
-
+  const { triggerNotification } = useNotification();
   const [createUser, { isLoading }] = useCreateUserMutation();
 
   const [errorMessage, setErrorMessage] = useState("");
@@ -41,7 +42,7 @@ const Signup = () => {
         password
         // organization,
       }).unwrap();
-
+      triggerNotification({ content: "Signup successful" });
       console.log("Signup successful", response);
 
       navigate("/");

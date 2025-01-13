@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { UIOverlayContext, UIOverlayContextType } from "src/contexts/UIOverlayContext";
+import { UIOverlayContext, UIOverlayContextType } from "@contexts/UIOverlayContext";
 
 const useUIOverlay = (): UIOverlayContextType => {
   const context = useContext(UIOverlayContext);

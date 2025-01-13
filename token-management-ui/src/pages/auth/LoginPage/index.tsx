@@ -6,9 +6,11 @@ import { saveLoginResponse } from "@features/auth/authSlice";
 import { Link } from "react-router-dom";
 import PasswordTextField from "@components/Input/PasswordTextField";
 import useUIOverlay from "@hooks/useUIOveray";
+import useNotification from "@hooks/useNotification";
 
 const LoginPage: React.FC = () => {
   const { toggleLoading } = useUIOverlay();
+  const { triggerNotification } = useNotification();
 
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,8 +27,8 @@ const LoginPage: React.FC = () => {
         username_or_email: usernameOrEmail,
         password
       }).unwrap();
+      triggerNotification({ content: "Login successful" });
       dispatch(saveLoginResponse(response));
-      console.log("Login successful", response);
     } catch (err) {
       console.error("Failed to login:", err);
       setErrorMessage("Failed to login. Please check your credentials.");
@@ -36,60 +38,58 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <>
-      <Box component='form' onSubmit={handleSubmit} p={4} pt={2}>
-        {errorMessage && (
-          <Alert severity='error' sx={{ mb: 2 }}>
-            {errorMessage}
-          </Alert>
-        )}
-        <Stack spacing={2} alignItems='center'>
-          <Typography variant='h6' textAlign='center' color='text.secondary' fontWeight={700}>
-            Sign in to your account
-          </Typography>
-          <TextField
+    <Box component='form' onSubmit={handleSubmit} p={4} pt={2}>
+      {errorMessage && (
+        <Alert severity='error' sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
+      <Stack spacing={2} alignItems='center'>
+        <Typography variant='h6' textAlign='center' color='text.secondary' fontWeight={700}>
+          Sign in to your account
+        </Typography>
+        <TextField
+          required
+          fullWidth
+          id='email'
+          label='Email Address'
+          name='email'
+          autoComplete='email'
+          autoFocus
+          value={usernameOrEmail}
+          onChange={(e) => setUsernameOrEmail(e.target.value)}
+        />
+        <Stack alignItems='end' width='100%'>
+          <PasswordTextField
             required
             fullWidth
-            id='email'
-            label='Email Address'
-            name='email'
-            autoComplete='email'
-            autoFocus
-            value={usernameOrEmail}
-            onChange={(e) => setUsernameOrEmail(e.target.value)}
+            name='password'
+            label='Password'
+            id='password'
+            autoComplete='current-password'
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
-          <Stack alignItems='end' width='100%'>
-            <PasswordTextField
-              required
-              fullWidth
-              name='password'
-              label='Password'
-              id='password'
-              autoComplete='current-password'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
 
-            <Link to='/forgotPassword'>
-              <Typography fontWeight={700}>Forgot Password?</Typography>
-            </Link>
-          </Stack>
-
-          <Button type='submit' fullWidth variant='contained' disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign In"}
-          </Button>
-
-          <Typography
-            sx={{
-              color: "text.secondary",
-              fontWeight: 700
-            }}
-          >
-            Don’t have an account? <Link to='/signup'>Register</Link>
-          </Typography>
+          <Link to='/forgotPassword'>
+            <Typography fontWeight={700}>Forgot Password?</Typography>
+          </Link>
         </Stack>
-      </Box>
-    </>
+
+        <Button type='submit' fullWidth variant='contained' disabled={isLoading}>
+          {isLoading ? "Signing in..." : "Sign In"}
+        </Button>
+
+        <Typography
+          sx={{
+            color: "text.secondary",
+            fontWeight: 700
+          }}
+        >
+          Don’t have an account? <Link to='/signup'>Register</Link>
+        </Typography>
+      </Stack>
+    </Box>
   );
 };
 
