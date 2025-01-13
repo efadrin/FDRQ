@@ -14,5 +14,5 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/azureuser/fdrq
+            cd /home/${{ secrets.SERVER_USERNAME }}/FDRQ
             ./deploy.sh
