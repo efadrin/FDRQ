@@ -7,7 +7,7 @@ log() {
 }
 
 # Navigate to project directory
-cd /home/azureuser/fdrq
+cd /home/azureuser/FDRQ
 
 # Log deployment start
 log "Starting deployment..."
