@@ -1,7 +1,7 @@
 services:
   slate:
     build:
-      context: ./slate
+      context: ./documentation-slate
       dockerfile: Dockerfile
     container_name: slate
     ports:
@@ -13,7 +13,7 @@ services:
 
   frontend:
     build:
-      context: ./token-management-ui
+      context: ./frontend
       dockerfile: Dockerfile.prod
       args:
         - VITE_API_BASE_URL=/api/
@@ -33,7 +33,7 @@ services:
 
   backend:
     build:
-      context: ./token-backend
+      context: ./backend
       dockerfile: Dockerfile.prod
     environment:
       EFA_ENDPOINT: https://hkg.efadrin.biz/webapi/4/dev/efawebapi.asmx
