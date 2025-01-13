@@ -46,34 +46,42 @@ type Claims struct {
 }
 
 func (s *Server) RunServer(port int) {
+
+    // Login route
     s.Router.HandleFunc("/api/v1/login", s.Login).Methods("POST")
+
+    // User routes
     s.Router.HandleFunc("/api/v1/users", s.CreateUser).Methods("POST")
     s.Router.HandleFunc("/api/v1/users", s.GetUsers).Methods("GET")
     s.Router.HandleFunc("/api/v1/users/{id}", s.GetUser).Methods("GET")
     s.Router.HandleFunc("/api/v1/users/{id}", s.UpdateUser).Methods("PUT")
     s.Router.HandleFunc("/api/v1/users/{id}", s.DeleteUser).Methods("DELETE")
+
+    // Organization routes
     s.Router.HandleFunc("/api/v1/organizations", s.CreateOrganization).Methods("POST")
     s.Router.HandleFunc("/api/v1/organizations", s.GetOrganizations).Methods("GET")
     s.Router.HandleFunc("/api/v1/organizations/{id}", s.GetOrganization).Methods("GET")
     s.Router.HandleFunc("/api/v1/organizations/{id}", s.UpdateOrganization).Methods("PUT")
     s.Router.HandleFunc("/api/v1/organizations/{id}", s.DeleteOrganization).Methods("DELETE")
+
+    // Tokens route
     s.Router.HandleFunc("/api/v1/tokens", s.CreateToken).Methods("POST")
     s.Router.HandleFunc("/api/v1/tokens", s.GetTokens).Methods("GET")
     s.Router.HandleFunc("/api/v1/tokens/{id}", s.GetToken).Methods("GET")
     s.Router.HandleFunc("/api/v1/tokens/{id}", s.UpdateToken).Methods("PUT")
     s.Router.HandleFunc("/api/v1/tokens/{id}", s.DeleteToken).Methods("DELETE")
 
+    // Permission routes
     s.Router.HandleFunc("/api/v1/permissions", s.CreatePermission).Methods("POST")
     s.Router.HandleFunc("/api/v1/permissions", s.GetPermissions).Methods("GET")
     s.Router.HandleFunc("/api/v1/permissions/{id}", s.GetPermission).Methods("GET")
     s.Router.HandleFunc("/api/v1/permissions/{id}", s.UpdatePermission).Methods("PUT")
     s.Router.HandleFunc("/api/v1/permissions/{id}", s.DeletePermission).Methods("DELETE")
 
+    // EFA routes
     s.Router.HandleFunc("/api/v1/docsearch", s.ValidateAPIToken(DocSearchHandler(s.Config, s.KeyStore))).Methods("POST")
 
-
     s.StartTime = time.Now()
-
     fmt.Printf("Server starting on port %d...\n", port)
 }
 
@@ -94,7 +102,7 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
     }
 
     // Print the received credentials (without password)
-    fmt.Printf("Login attempt - Username/Email: %s\n", loginRequest.UsernameOrEmail)
+    // fmt.Printf("Login attempt - Username/Email: %s\n", loginRequest.UsernameOrEmail)
 
     // Try to find the user by either username or email
     var dbUser User
@@ -114,7 +122,7 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
     }
 
     // Print the found user details (except password)
-    fmt.Printf("Found user - Email: %s, Username: %s\n", dbUser.Email, dbUser.Username)
+    // fmt.Printf("Found user - Email: %s, Username: %s\n", dbUser.Email, dbUser.Username)
 
     // Compare passwords
     if err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(loginRequest.Password)); err != nil {

@@ -311,7 +311,6 @@ func convertToJSON(xmlData []byte) (*DocSearchResponse, error) {
 }
 
 // API handler
-// In efaapi.go
 
 func DocSearchHandler(config Config, keyStore APIKeyStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
