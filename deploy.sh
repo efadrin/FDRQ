@@ -18,27 +18,28 @@ git pull origin main
 
 # Build and tag new images
 log "Building new images..."
-docker-compose -f docker-compose.yml build
+docker compose -f docker-compose.yml build
 
 # Tag images for production
 log "Tagging images for production..."
-docker tag fdrq-frontend:latest fdrq-frontend:$(date +%Y%m%d_%H%M%S)
-docker tag fdrq-backend:test fdrq-backend:$(date +%Y%m%d_%H%M%S)
-docker tag slate:latest fdrq-slate:$(date +%Y%m%d_%H%M%S)
+current_date=$(date +%d%m%Y)
+docker tag fdrq-frontend:latest fdrq-frontend:$current_date
+docker tag slate:latest fdrq-slate:$current_date
+docker tag fdrq-backend:test fdrq-backend:$current_date
 
 # Stop and remove existing containers
 log "Stopping existing containers..."
-docker-compose -f docker-compose-prod.yml down
+docker compose -f docker-compose-prod.yml down
 
 # Start new containers
 log "Starting new containers..."
-docker-compose -f docker-compose-prod.yml up -d
+docker compose -f docker-compose-prod.yml up -d
 
-# Verify services are running
+# Verify services
 log "Verifying services..."
 sleep 30  # Wait for services to start
 
-# Check each service
+# Health check function
 check_service() {
     local service=$1
     local port=$2
@@ -51,7 +52,7 @@ check_service() {
     fi
 }
 
-# Check all services
+# Check each service
 check_service "frontend" 80
 check_service "backend" 8089
 check_service "slate" 4567
