@@ -3,7 +3,7 @@ set -e  # Exit on any error
 
 # Log function
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> /path/to/deploy.log
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> /home/azureuser/FDRQ.log
 }
 
 # Navigate to project directory
