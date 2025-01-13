@@ -286,7 +286,7 @@ func (s *Server) CheckAuthorization(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) ValidateAPIToken(next http.HandlerFunc) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        apiToken := r.Header.Get("X-API-Token")
+        apiToken := r.Header.Get("api-token")
         if apiToken == "" {
             w.Header().Set("Content-Type", "application/json")
             w.WriteHeader(http.StatusUnauthorized)
@@ -328,9 +328,9 @@ func (s *Server) ValidateAPIToken(next http.HandlerFunc) http.HandlerFunc {
 func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
     var users []User
     s.DB.Preload("Organization").Find(&users)
-    // for i := range users {
-    //     users[i].Password = ""
-    // }
+    for i := range users {
+        users[i].Password = ""
+    }
     json.NewEncoder(w).Encode(users)
 }
 
