@@ -1,6 +1,6 @@
 services:
   slate:
-    image: fdrq-slate:01062025
+    image: fdrq-slate:${current_date:-latest}
     container_name: slate
     ports:
       - "4567:4567"
@@ -10,7 +10,7 @@ services:
         ipv4_address: "10.2.0.5"
 
   frontend:
-    image: fdrq-frontend:latest
+    image: fdrq-frontend:${current_date:-latest}
     container_name: frontend
     restart: always
     volumes:
@@ -25,7 +25,7 @@ services:
         ipv4_address: "10.2.0.4"
 
   backend:
-    image: fdrq-backend:test
+    image: fdrq-backend:${current_date:-latest}
     environment:
       EFA_ENDPOINT: https://hkg.efadrin.biz/webapi/4/dev/efawebapi.asmx
       EFA_AUTH_TOKEN: AF10F8FF-D69C-4653-BAD8-39777C52E7A1

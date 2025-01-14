@@ -6,6 +6,8 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> /home/azureuser/FDRQ.log
 }
 
+export current_date=$(date +%d%m%Y)
+
 # Navigate to project directory
 cd /home/azureuser/FDRQ
 
@@ -24,18 +26,18 @@ docker compose -f docker-compose.yml build
 log "Tagging images for production..."
 current_date=$(date +%d%m%Y)
 
-# Only tag images after they're built
+# Tag images using the correct names
 if docker image inspect fdrq-frontend:latest >/dev/null 2>&1; then
     docker tag fdrq-frontend:latest fdrq-frontend:$current_date
 fi
 
-# For slate, we need to tag it with the name used in prod compose
-if docker images | grep -q "fdrq_slate"; then
-    docker tag fdrq_slate:latest fdrq-slate:$current_date
+if docker image inspect fdrq-slate:latest >/dev/null 2>&1; then
+    docker tag fdrq-slate:latest fdrq-slate:$current_date
 fi
 
-if docker image inspect fdrq-backend:test >/dev/null 2>&1; then
-    docker tag fdrq-backend:test fdrq-backend:$current_date
+if docker image inspect fdrq-backend:latest >/dev/null 2>&1; then
+    # docker tag fdrq-backend:latest fdrq-backend:test
+    docker tag fdrq-backend:latest fdrq-backend:$current_date
 fi
 
 # Stop and remove existing containers
