@@ -15,12 +15,12 @@ import (
 )
 
 func main() {
-    err := godotenv.Load()
+    // err := godotenv.Load()
 
-    if err != nil {
-        log.Fatalf("Error loading .env file")
-        fmt.Println("Error loading .env file")
-    }
+    // if err != nil {
+    //     log.Fatalf("Error loading .env file")
+    //     fmt.Println("Error loading .env file")
+    // }
 
     // Get the database URL from the environment variable
     dsn := os.Getenv("DATABASE_URL")
