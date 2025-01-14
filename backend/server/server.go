@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/efadrin/apitoken"
-	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
