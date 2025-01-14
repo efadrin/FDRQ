@@ -3,6 +3,7 @@ services:
     build:
       context: ./documentation-slate
       dockerfile: Dockerfile
+    image: fdrq-slate:latest
     container_name: slate
     ports:
       - "4567:4567"
@@ -17,8 +18,8 @@ services:
       dockerfile: Dockerfile.prod
       args:
         - VITE_API_BASE_URL=/api/
-    container_name: frontend
     image: fdrq-frontend:latest
+    container_name: frontend
     restart: always
     volumes:
       - /etc/ssl/certs/nginx-selfsigned.crt:/etc/ssl/certs/nginx-selfsigned.crt
@@ -39,6 +40,7 @@ services:
       EFA_ENDPOINT: https://hkg.efadrin.biz/webapi/4/dev/efawebapi.asmx
       EFA_AUTH_TOKEN: AF10F8FF-D69C-4653-BAD8-39777C52E7A1
       DATABASE_URL: postgres://fdrq_admin:12345678x@X@10.2.0.2:5432/fdrq?sslmode=disable
+    image: fdrq-backend:latest
     container_name: backend
     restart: always
     ports:
