@@ -10,6 +10,7 @@ import {
   Snackbar,
   Alert,
   Button,
+  Stack
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -22,14 +23,13 @@ const ApiKeyDisplay: React.FC = () => {
   const [showCopyAlert, setShowCopyAlert] = useState(false);
   const dispatch = useAppDispatch();
 
-  // Get API token from Redux store
-  const apiToken = useSelector((state: RootState) => state.auth.apiToken);
+  const auth = useSelector((state: RootState) => state.auth);
 
   const handleCopy = async () => {
-    if (!apiToken) return;
+    if (!auth.apiToken) return;
 
     try {
-      await navigator.clipboard.writeText(apiToken);
+      await navigator.clipboard.writeText(auth.apiToken);
       setShowCopyAlert(true);
     } catch (err) {
       console.error("Failed to copy:", err);
@@ -40,7 +40,11 @@ const ApiKeyDisplay: React.FC = () => {
     dispatch(logout());
   };
 
-  if (!apiToken) {
+  const handleApiDocumentClick = () => {
+    window.location.href = "/slate/";
+  };
+
+  if (!auth.apiToken) {
     return (
       <Container>
         <Typography>No API token available. Please log in again.</Typography>
@@ -54,119 +58,165 @@ const ApiKeyDisplay: React.FC = () => {
         sx={{
           position: "absolute",
           top: 24,
-          left: 24,
+          left: 24
         }}
       >
         <img
           src={image}
-          alt="Peel Hunt Logo"
+          alt='Peel Hunt Logo'
           style={{
             width: 60,
             height: 60,
             objectFit: "contain",
-            opacity: 0.9,
+            opacity: 0.9
           }}
         />
       </Box>
 
-      <Container maxWidth="sm">
+      <Container maxWidth='sm'>
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             minHeight: "100vh",
-            justifyContent: "center",
+            justifyContent: "center"
           }}
         >
+          <Box width='100%' mb={1}>
+            <Typography
+              variant='h6'
+              sx={{
+                color: "text.primary",
+                fontWeight: 700
+              }}
+            >
+              API Token Key
+            </Typography>
+          </Box>
           <Paper
             elevation={3}
             sx={{
               width: "100%",
-              maxWidth: 450,
               borderRadius: 2,
-              overflow: "hidden",
+              overflow: "hidden"
             }}
           >
-            <Box
-              sx={{
-                bgcolor: "white",
-                py: 3,
-                px: 4,
-                borderBottom: "1px solid",
-                borderColor: "divider",
-                textAlign: "center",
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{
-                  color: "text.secondary",
-                  fontWeight: 400,
-                }}
-              >
-                API Token Key
-              </Typography>
-            </Box>
-
-            <Box
+            <Stack
               sx={{
                 p: 4,
-                bgcolor: "white",
+                bgcolor: "white"
               }}
+              gap={3}
             >
+              <Stack direction='row' gap={1}>
+                <Typography
+                  sx={{
+                    color: "text.primary",
+                    fontWeight: 700
+                  }}
+                >
+                  Email:
+                </Typography>
+                <Typography
+                  sx={{
+                    color: "text.primary",
+                    fontWeight: 500
+                  }}
+                >
+                  {auth.user?.email}
+                </Typography>
+              </Stack>
+
               <TextField
                 fullWidth
-                variant="outlined"
-                value={apiToken}
+                variant='outlined'
+                value={auth.apiToken}
                 InputProps={{
                   readOnly: true,
                   endAdornment: (
                     <IconButton
                       onClick={handleCopy}
-                      size="small"
+                      size='small'
                       sx={{
                         color: "primary.main",
                         "&:hover": {
-                          color: "primary.dark",
-                        },
+                          color: "primary.dark"
+                        }
                       }}
                     >
                       <ContentCopyIcon />
                     </IconButton>
-                  ),
+                  )
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 1.5,
-                  },
+                    backgroundColor: "#eaecef",
+                    color: "#495057"
+                  }
                 }}
               />
 
-              <Button
-                fullWidth
-                startIcon={<LogoutIcon />}
-                onClick={handleLogout}
-                variant="outlined"
-                sx={{
-                  mt: 3,
-                  height: 48,
-                  borderRadius: 1.5,
-                  textTransform: "none",
-                  fontSize: "1rem",
-                  fontWeight: 500,
-                  borderColor: "divider",
-                  color: "text.secondary",
-                  "&:hover": {
-                    backgroundColor: "rgba(0, 0, 0, 0.04)",
-                    borderColor: "text.secondary",
-                  },
-                }}
-              >
-                Logout
-              </Button>
-            </Box>
+              <Stack direction='row' gap={2}>
+                <Button
+                  onClick={handleApiDocumentClick}
+                  variant='contained'
+                  sx={{
+                    borderRadius: 1.5,
+                    px: 4,
+                    py: 1.2,
+                    fontSize: 16,
+                    fontWeight: 500,
+                    backgroundColor: "#1cb955",
+                    ":hover": {
+                      backgroundColor: "#18A44A"
+                    }
+                  }}
+                >
+                  API Documentation
+                </Button>
+                <Button
+                  variant='contained'
+                  sx={{
+                    borderRadius: 1.5,
+                    px: 4,
+                    py: 1.2,
+                    fontSize: 16,
+                    fontWeight: 500,
+                    backgroundColor: "#363636",
+                    ":hover": {
+                      backgroundColor: "#4A4A4A"
+                    }
+                  }}
+                >
+                  Regenerate
+                </Button>
+              </Stack>
+            </Stack>
           </Paper>
+          <Button
+            fullWidth
+            startIcon={<LogoutIcon />}
+            onClick={handleLogout}
+            variant='outlined'
+            sx={{
+              mt: 4,
+              height: 48,
+              borderRadius: 1.5,
+              textTransform: "none",
+              fontSize: "1rem",
+              fontWeight: 500,
+              borderColor: "divider",
+              color: "text.secondary",
+              "&:hover": {
+                backgroundColor: "rgba(0, 0, 0, 0.04)",
+                borderColor: "text.secondary"
+              }
+            }}
+          >
+            Logout
+          </Button>
         </Box>
       </Container>
 
@@ -178,12 +228,12 @@ const ApiKeyDisplay: React.FC = () => {
       >
         <Alert
           onClose={() => setShowCopyAlert(false)}
-          severity="success"
+          severity='success'
           sx={{
             width: "100%",
             "& .MuiAlert-message": {
-              fontSize: "0.95rem",
-            },
+              fontSize: "0.95rem"
+            }
           }}
         >
           API token copied to clipboard!
