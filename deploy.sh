@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e  # Exit on any error
+set -e # Exit on any error
 
 # Log function
 log() {
@@ -23,9 +23,20 @@ docker compose -f docker-compose.yml build
 # Tag images for production
 log "Tagging images for production..."
 current_date=$(date +%d%m%Y)
-docker tag fdrq-frontend:latest fdrq-frontend:$current_date
-docker tag slate:latest fdrq-slate:$current_date
-docker tag fdrq-backend:test fdrq-backend:$current_date
+
+# Only tag images after they're built
+if docker image inspect fdrq-frontend:latest >/dev/null 2>&1; then
+    docker tag fdrq-frontend:latest fdrq-frontend:$current_date
+fi
+
+# For slate, we need to tag it with the name used in prod compose
+if docker images | grep -q "fdrq_slate"; then
+    docker tag fdrq_slate:latest fdrq-slate:$current_date
+fi
+
+if docker image inspect fdrq-backend:test >/dev/null 2>&1; then
+    docker tag fdrq-backend:test fdrq-backend:$current_date
+fi
 
 # Stop and remove existing containers
 log "Stopping existing containers..."
@@ -37,7 +48,7 @@ docker compose -f docker-compose-prod.yml up -d
 
 # Verify services
 log "Verifying services..."
-sleep 30  # Wait for services to start
+sleep 30 # Wait for services to start
 
 # Health check function
 check_service() {
