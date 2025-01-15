@@ -286,7 +286,7 @@ func (s *Server) CheckAuthorization(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) ValidateAPIToken(next http.HandlerFunc) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        apiToken := r.Header.Get("api-token")
+        apiToken := r.Header.Get("X-Peelhunt-Token")
         if apiToken == "" {
             w.Header().Set("Content-Type", "application/json")
             w.WriteHeader(http.StatusUnauthorized)

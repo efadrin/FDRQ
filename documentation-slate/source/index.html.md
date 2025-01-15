@@ -6,7 +6,7 @@ language_tabs: # must be one of https://github.com/rouge-ruby/rouge/wiki/List-of
   # - shell
   # - ruby
   - python
-  - javascript
+  # - javascript
 
 toc_footers:
   - <a href='#'>Sign Up for a Developer Key</a>
@@ -24,11 +24,9 @@ meta:
     content: Documentation for the Kittn API
 ---
 
-# Introduction
+# API Documentation
 
-Welcome to the EFADRIN API! You can use our API to access EFADRIN API endpoints, which can get information on various financial queries.
-
-We have language bindings in Python! You can view code examples in the dark area to the right.
+The API is organized around REST. Our API has predictable resource-oriented URLs, accepts form-encoded request bodies, returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.
 
 # Authentication
 
@@ -37,20 +35,37 @@ We have language bindings in Python! You can view code examples in the dark area
 ```python
 import requests
 import json
+from pprint import pprint
 
 # API endpoint
-url = 'http://localhost:8089/api/v1/users'
+headers = {
+    "api-token": "meowmeowmeow"
+}
 
+url = 'http://localhost:8089/api/v1/authorize-token'
 
+try:
+  response = requests.post(url, headers=headers, json=payload)
+  data = response.json()
+  print(json.dumps(data, indent=2, ensure_ascii=False))
+
+except requests.exceptions.RequestException as e:
+    print(f"Error making request: {e}")
+
+except json.JSONDecodeError as e:
+    print(f"Error parsing JSON: {e}")
+
+except Exception as e:
+    print(f"Unexpected error: {e}")
 ```
 
 > Make sure to replace `meowmeowmeow` with your API key.
 
-PeelHunt uses API keys to allow access to the API. You can register a new PeelHunt API key at our [developer portal](http://172.183.157.113/login).
+All GET request require a header X-Peelhunt-Token : apiKey. You can find your API Key under [developer portal](http://172.183.157.113/login).
 
-PeelHunt expects for the API key to be included in all API requests to the server in a header that looks like the following:
+<!-- If you are logged in, your API key will be automatically used in the examples so you can copy and paste them as is. -->
 
-`Authorization: meowmeowmeow`
+`X-Peelhunt-Token: meowmeowmeow`
 
 <aside class="notice">
 You must replace <code>meowmeowmeow</code> with your personal API key.
@@ -62,21 +77,54 @@ The DocSearch API allows you to search and retrieve document information based o
 
 ## Endpoint
 
+```python
+import requests
+import json
+from pprint import pprint
+
+# Your configuration
+url = "http://localhost:8089/api/v1/docsearch"
+headers = {
+    "api-key": "814dabdd0d755dbea52e46c4d3b01ee21d550650f8cb735b9b3489d5223bfa27"
+}
+
+payload = {
+    "accountName": "FDRN_PEELHUNT",
+    "searchText": "trading",
+    "marketIds": "GB",
+    "dateFrom": "2023-01-01",
+    "dateTo": "2023-12-31",
+    "searchTop": "1"
+}
+
+try:
+    # Make request
+    response = requests.post(url, headers=headers, json=payload)
+    data = response.json()
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+
+except requests.exceptions.RequestException as e:
+    print(f"Error making request: {e}")
+
+except json.JSONDecodeError as e:
+    print(f"Error parsing JSON: {e}")
+
+except Exception as e:
+    print(f"Unexpected error: {e}")
 ```
-POST /webapi/4/dev/efawebapi.asmx
-```
 
-Host: `hkg.efadrin.biz`
+Host: `api.efadrin.biz`
 
-## Parameters
+<!-- ## Arguments -->
 
-| Parameter      | Type   | Description                               |
+<!-- | AccountName    | string | User account identifier                   | -->
+<!-- | LanguageID     | string | Language identifier for filtering results | -->
+
+| Argument       | Type   | Description                               |
 | -------------- | ------ | ----------------------------------------- |
-| AccountName    | string | User account identifier                   |
 | SearchText     | string | Text to search for within documents       |
 | SearchType     | string | Type of search to perform                 |
 | SearchTop      | string | Maximum number of results to return       |
-| LanguageID     | string | Language identifier for filtering results |
 | DocGUID        | string | Unique identifier for a specific document |
 | ReportTypeID   | string | Filter by report type identifier          |
 | ReportTypeName | string | Filter by report type name                |
@@ -91,7 +139,7 @@ Host: `hkg.efadrin.biz`
 
 ## Response Structure
 
-The API returns an XML response containing document information. Each document result includes:
+The API returns an JSON response containing document information. Each document result includes:
 
 ### Header Section
 
