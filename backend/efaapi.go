@@ -337,18 +337,12 @@ func DocSearchHandler(config Config, keyStore APIKeyStore) http.HandlerFunc {
 			return
 		}
 
-		fmt.Printf("DocSearch Body %s\n", bodyReq)
-
-		//if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		if err2 := json.Unmarshal(bodyReq, &req); err2 != nil {
-			//fmt.Printf("DocSearch |  %s\n", err.Error())
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return
 		}
 		fmt.Printf("DocSearch Body Account %s\n", req.AccountName)
 		// Add the user's token to request tracking (you might want to log this)
-
-		//req.AccountName = fmt.Sprintf("%s-user-%d", req.AccountName, userID)
 
 		// Create SOAP request
 		soapReq := soapEnvelope{

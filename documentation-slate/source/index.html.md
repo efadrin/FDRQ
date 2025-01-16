@@ -42,7 +42,7 @@ headers = {
     "api-token": "meowmeowmeow"
 }
 
-url = 'http://localhost:8089/api/v1/authorize-token'
+url = 'http://api.efadrin.io/api/v1/authorize-token'
 
 try:
   response = requests.post(url, headers=headers, json=payload)
@@ -61,7 +61,7 @@ except Exception as e:
 
 > Make sure to replace `meowmeowmeow` with your API key.
 
-All GET request require a header X-Peelhunt-Token : apiKey. You can find your API Key under [developer portal](http://172.183.157.113/login).
+All GET request require a header X-Peelhunt-Token : apiKey. You can find your API Key after signing in [here].(http://api.efadrin.io/login).
 
 <!-- If you are logged in, your API key will be automatically used in the examples so you can copy and paste them as is. -->
 
@@ -83,9 +83,9 @@ import json
 from pprint import pprint
 
 # Your configuration
-url = "http://localhost:8089/api/v1/docsearch"
+url = "https://api.efadrin.io/api/v1/docsearch"
 headers = {
-    "api-key": "814dabdd0d755dbea52e46c4d3b01ee21d550650f8cb735b9b3489d5223bfa27"
+    "X-Peelhunt-Token": "meowmeowmeow"
 }
 
 payload = {
@@ -117,9 +117,6 @@ Host: `api.efadrin.biz`
 
 <!-- ## Arguments -->
 
-<!-- | AccountName    | string | User account identifier                   | -->
-<!-- | LanguageID     | string | Language identifier for filtering results | -->
-
 | Argument       | Type   | Description                               |
 | -------------- | ------ | ----------------------------------------- |
 | SearchText     | string | Text to search for within documents       |
@@ -140,6 +137,57 @@ Host: `api.efadrin.biz`
 ## Response Structure
 
 The API returns an JSON response containing document information. Each document result includes:
+
+```json
+{
+  "header": {
+    "recordCount": 1,
+    "statusCode": 0,
+    "statusMsg": ""
+  },
+  "documents": [
+    {
+      "docGuid": "a7a39aa8-ba82-41c2-b7bf-da414bcdf422",
+      "docId": 9876,
+      "docType": {
+        "id": 300
+      },
+      "rixmlType": "Company Note Long",
+      "markets": [
+        {
+          "id": "GB"
+        }
+      ],
+      "sectors": [
+        {
+          "id": 8
+        }
+      ],
+      "industries": [
+        {
+          "id": 14
+        }
+      ],
+      "authors": [
+        {
+          "id": 21623
+        }
+      ],
+      "corps": [
+        {
+          "id": 517
+        }
+      ],
+      "docTitle": "#TRENDING",
+      "docSynopsis": "·  LBG is one of the UK’s largest social digital publishers, focused on a notoriously difficult demographic to reach – youths.|·  We address near-term headwinds from declining ad yields with conservatism in our forecasts, and steps that management have taken.|·  Going forward, we see many growth avenues, including building up a US Direct business, diversifying across social media platforms, and M&A.",
+      "publicationDate": "2023-01-10",
+      "publicationDateTime": "2023-01-10T17:54:38.060",
+      "rank": 6,
+      "isCompendium": false
+    }
+  ]
+}
+```
 
 ### Header Section
 
