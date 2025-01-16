@@ -61,7 +61,7 @@ except Exception as e:
 
 > Make sure to replace `meowmeowmeow` with your API key.
 
-All GET request require a header X-Peelhunt-Token : apiKey. You can find your API Key after signing in [here].(http://api.efadrin.io/login).
+All GET request require a header X-Peelhunt-Token : apiKey. You can find your API Key after signing in [here](http://api.efadrin.io/login).
 
 <!-- If you are logged in, your API key will be automatically used in the examples so you can copy and paste them as is. -->
 
