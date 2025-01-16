@@ -64,7 +64,7 @@ check_service() {
         return 0
     else
         log "$service check failed (Status: $response_code, Expected: $expected_status)"
-        return 0  # Changed to return 0 to prevent deployment failure
+        return 1  # Changed to return 0 to prevent deployment failure
     fi
 }
 
