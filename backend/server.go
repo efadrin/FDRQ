@@ -282,44 +282,44 @@ func (s *Server) CheckAuthorization(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) ValidateAPIToken(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		apiToken := r.Header.Get("api-token")
-		if apiToken == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{
-				"error": "API token required",
-			})
-			return
-		}
+    return func(w http.ResponseWriter, r *http.Request) {
+        apiToken := r.Header.Get("X-Peelhunt-Token")
+        if apiToken == "" {
+            w.Header().Set("Content-Type", "application/json")
+            w.WriteHeader(http.StatusUnauthorized)
+            json.NewEncoder(w).Encode(map[string]string{
+                "error": "API token required",
+            })
+            return
+        }
 
-		var token Token
-		if err := s.DB.Where("token = ? AND is_api_token = ?", apiToken, true).First(&token).Error; err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{
-				"error": "Invalid API token",
-			})
-			return
-		}
+        var token Token
+        if err := s.DB.Where("token = ? AND is_api_token = ?", apiToken, true).First(&token).Error; err != nil {
+            w.Header().Set("Content-Type", "application/json")
+            w.WriteHeader(http.StatusUnauthorized)
+            json.NewEncoder(w).Encode(map[string]string{
+                "error": "Invalid API token",
+            })
+            return
+        }
 
-		if !token.IsValid() {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{
-				"error": "Expired API token",
-			})
-			return
-		}
+        if !token.IsValid() {
+            w.Header().Set("Content-Type", "application/json")
+            w.WriteHeader(http.StatusUnauthorized)
+            json.NewEncoder(w).Encode(map[string]string{
+                "error": "Expired API token",
+            })
+            return
+        }
 
-		// Update last used timestamp
-		token.UpdateLastUsed(s.DB)
+        // Update last used timestamp
+        token.UpdateLastUsed(s.DB)
 
-		// Add user and token info to request context
-		ctx := context.WithValue(r.Context(), "user_id", token.UserID)
-		ctx = context.WithValue(ctx, "token", &token)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	}
+        // Add user and token info to request context
+        ctx := context.WithValue(r.Context(), "user_id", token.UserID)
+        ctx = context.WithValue(ctx, "token", &token)
+        next.ServeHTTP(w, r.WithContext(ctx))
+    }
 }
 
 func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
