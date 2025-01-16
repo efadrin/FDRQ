@@ -17,7 +17,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        - VITE_API_BASE_URL=/api/
+        - VITE_API_BASE_URL=/api/v1/
     image: fdrq-frontend:latest
     container_name: frontend
     restart: always
