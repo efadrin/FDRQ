@@ -67,6 +67,16 @@ type DocSearchResponse struct {
 	Header    Header     `json:"header"`
 	Documents []Document `json:"documents"`
 }
+type DocRetrieveResponse struct {
+	FileName  string `json:"filename"`
+	DocGuid   string `json:"docGuid"`
+	PDFBinary string `json:"pdfBinary"`
+}
+type DocRetrieveRequest struct {
+	AccountName string `json:"accountName"`
+	DocGUID     string `json:"docGUID"`
+	DocType     string `json:"docType"`
+}
 
 type Header struct {
 	RecordCount int    `json:"recordCount"`
@@ -120,6 +130,10 @@ type Corp struct {
 type XMLResponse struct {
 	Body SoapBody `xml:"Body"`
 }
+type XMLResponseDocRetrieve struct {
+	Body SoapBodyDocRetrieve `xml:"Body"`
+}
+
 type SoapBody struct {
 	EFADocSearchResponse EFADocSearchResponse `xml:"EFADocSearchResponse"`
 }
@@ -132,6 +146,24 @@ type EFADocSearchResult struct {
 type EFADocSearch struct {
 	Header    EFADocSearch_Header `xml:"Header"`
 	DocSearch []DocSearch         `xml:"DocSearch"`
+}
+
+type SoapBodyDocRetrieve struct {
+	EFADocRetrieveResponse EFADocRetrieveResponse `xml:"EFADocRetrieveResponse"`
+}
+type EFADocRetrieveResponse struct {
+	EFADocRetrieveResult EFADocRetrieveResult `xml:"EFADocRetrieveResult"`
+}
+type EFADocRetrieveResult struct {
+	EFADocRetrieve EFADocRetrieve `xml:"EFADocRetrieve"`
+}
+type EFADocRetrieve struct {
+	DocPDF DocPDF `xml:"DocPDF"`
+}
+type DocPDF struct {
+	FileName  string `xml:"FileName"`
+	DocGUID   string `xml:"DocGUID"`
+	PDFBinary string `xml:"PDFBinary"`
 }
 type EFADocSearch_Header struct {
 	RecordCount int    `xml:"RecordCount"`
@@ -237,6 +269,28 @@ type efaDocSearch struct {
 	AuthToken      string
 }
 
+type soapEnvelopeDocRetrieve struct {
+	XMLName xml.Name `xml:"soap:Envelope"`
+	Soap    string   `xml:"xmlns:soap,attr"`
+	Xsi     string   `xml:"xmlns:xsi,attr"`
+	Xsd     string   `xml:"xmlns:xsd,attr"`
+	Body    soapBodyDocRetrieve
+}
+
+type soapBodyDocRetrieve struct {
+	XMLName        xml.Name `xml:"soap:Body"`
+	EFADocRetrieve efaDocRetrieve
+}
+
+type efaDocRetrieve struct {
+	XMLName     xml.Name `xml:"EFADocRetrieve"`
+	Xmlns       string   `xml:"xmlns,attr"`
+	AccountName string
+	DocGUID     string
+	DocType     string
+	AuthToken   string
+}
+
 // Convert XML response to JSON structure
 func convertToJSON(xmlData []byte) (*DocSearchResponse, error) {
 	var xmlResp XMLResponse
@@ -304,6 +358,32 @@ func convertToJSON(xmlData []byte) (*DocSearchResponse, error) {
 		}
 
 		response.Documents[i] = doc
+	}
+
+	return response, nil
+	//return nil, nil
+}
+func convertToJSONDocRetrieve(xmlData []byte) (*DocRetrieveResponse, error) {
+	var xmlResp XMLResponseDocRetrieve
+
+	if err := xml.Unmarshal(xmlData, &xmlResp); err != nil {
+		return nil, fmt.Errorf("error unmarshaling SOAP response: %v", err)
+	}
+
+	fmt.Printf("DocSearch - EFA Response Body: %d\n", xmlResp.Body.EFADocRetrieveResponse.EFADocRetrieveResult.EFADocRetrieve.DocPDF.FileName)
+
+	/*
+		var efaResult EFADocSearchResult
+		if err := xml.Unmarshal([]byte(xmlResp.Body.EFADocSearchResponse.EFADocSearchResult), &efaResult); err != nil {
+			return nil, fmt.Errorf("error unmarshaling search result: %v", err)
+		}
+	*/
+
+	var efaResult DocPDF = xmlResp.Body.EFADocRetrieveResponse.EFADocRetrieveResult.EFADocRetrieve.DocPDF
+	response := &DocRetrieveResponse{
+		FileName:  efaResult.FileName,
+		DocGuid:   efaResult.DocGUID,
+		PDFBinary: efaResult.PDFBinary,
 	}
 
 	return response, nil
@@ -429,7 +509,116 @@ func DocSearchHandler(config Config, keyStore APIKeyStore) http.HandlerFunc {
 			userID, jsonResponse.Header.RecordCount)
 	}
 }
+func DocRetrieveHandler(config Config, keyStore APIKeyStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get user and token from context (set by middleware)
+		userID := r.Context().Value("user_id").(int)
+		token := r.Context().Value("token").(*Token)
 
+		// Log the API request for auditing
+		fmt.Printf("DocRetrieve request from user %d using token %s\n", userID, token.Token)
+
+		// Check HTTP method
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Parse request body
+		var req DocRetrieveRequest
+		bodyReq, err1 := io.ReadAll(r.Body)
+
+		defer r.Body.Close()
+		if err1 != nil {
+			http.Error(w, "Invalid request body: null", http.StatusBadRequest)
+			return
+		}
+
+		fmt.Printf("DocRetrieve Body %s\n", bodyReq)
+
+		//if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err2 := json.Unmarshal(bodyReq, &req); err2 != nil {
+			//fmt.Printf("DocSearch |  %s\n", err.Error())
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		fmt.Printf("DocRetrieve Body Account %s\n", req.AccountName)
+		// Add the user's token to request tracking (you might want to log this)
+
+		//req.AccountName = fmt.Sprintf("%s-user-%d", req.AccountName, userID)
+
+		// Create SOAP request
+		soapReq := soapEnvelopeDocRetrieve{
+			Soap: "http://schemas.xmlsoap.org/soap/envelope/",
+			Xsi:  "http://www.w3.org/2001/XMLSchema-instance",
+			Xsd:  "http://www.w3.org/2001/XMLSchema",
+			Body: soapBodyDocRetrieve{
+				EFADocRetrieve: efaDocRetrieve{
+					Xmlns:       "http://www.edefa.biz/",
+					AccountName: req.AccountName,
+					DocGUID:     req.DocGUID,
+					DocType:     req.DocType,
+					AuthToken:   config.AuthToken,
+				},
+			},
+		}
+
+		// Convert to XML
+		xmlData, err := xml.MarshalIndent(soapReq, "", "  ")
+		if err != nil {
+			http.Error(w, "Error creating request", http.StatusInternalServerError)
+			return
+		}
+
+		// Create HTTP client with timeout
+		client := &http.Client{
+			Timeout: 30 * time.Second,
+		}
+
+		// Create request to EFA API
+		efaReq, err := http.NewRequest("POST", config.EFAEndpoint, bytes.NewBuffer(xmlData))
+		if err != nil {
+			http.Error(w, "Error creating request", http.StatusInternalServerError)
+			return
+		}
+
+		efaReq.Header.Set("Content-Type", "text/xml; charset=utf-8")
+		efaReq.Header.Set("SOAPAction", "http://www.edefa.biz/EFADocRetrieve")
+
+		// Make request to EFA API
+		resp, err := client.Do(efaReq)
+		if err != nil {
+			http.Error(w, "Error calling EFA API", http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
+
+		// Read response
+		//dec := xml.NewDecoder(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+
+		if err != nil {
+			http.Error(w, "Error reading response", http.StatusInternalServerError)
+			return
+		}
+		//str1 := string(body[:])
+		//fmt.Printf("DocRetrieve - EFA Response Body: %s", str1)
+		// Convert XML to JSON
+		jsonResponse, err := convertToJSONDocRetrieve(body)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error converting response: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		// Send JSON response
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(jsonResponse)
+
+		// Log successful request completion
+		fmt.Printf("Completed DocSearch request for user %d with %d results\n",
+			userID, jsonResponse.FileName)
+	}
+}
 func main() {
 	// Initialize configuration
 	config := Config{
