@@ -36,7 +36,7 @@ interface Permission {
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL,
+    baseUrl: import.meta.env.VITE_API_BASE_URL + 'v1/',
     prepareHeaders: (headers) => {
       // Add auth token if available
       const token = localStorage.getItem("token");
