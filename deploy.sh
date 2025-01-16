@@ -36,7 +36,6 @@ if docker image inspect fdrq-slate:latest >/dev/null 2>&1; then
 fi
 
 if docker image inspect fdrq-backend:latest >/dev/null 2>&1; then
-    # docker tag fdrq-backend:latest fdrq-backend:test
     docker tag fdrq-backend:latest fdrq-backend:$current_date
 fi
 
@@ -55,20 +54,32 @@ sleep 30 # Wait for services to start
 # Health check function
 check_service() {
     local service=$1
-    local port=$2
-    if curl -sf http://localhost:$port > /dev/null; then
-        log "$service is running"
+    local endpoint=$2
+    local expected_status=$3
+
+    local response_code=$(curl -s -o /dev/null -w "%{http_code}" $endpoint)
+    
+    if [ "$response_code" = "$expected_status" ]; then
+        log "$service is running (Status: $response_code)"
         return 0
     else
-        log "$service failed to start"
+        log "$service check failed (Status: $response_code, Expected: $expected_status)"
         return 1
-    fi
+    }
 }
 
 # Check each service
-check_service "frontend" 80
-check_service "backend" 8089
-check_service "slate" 4567
+# Frontend - Expects 301 redirect to HTTPS
+check_service "frontend" "http://localhost:80" "301"
+
+# Backend API health check endpoint
+check_service "backend" "http://localhost:8089/api/v1/login" "405"
+
+# Slate docs
+check_service "slate" "http://localhost:4567" "200"
+
+# If we got here, all checks passed
+log "All service checks passed"
 
 # Clean up old images
 log "Cleaning up old images..."
