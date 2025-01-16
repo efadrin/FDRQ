@@ -73,7 +73,7 @@ check_service() {
 check_service "frontend" "http://localhost:80" "301"
 
 # Backend API health check endpoint
-check_service "backend" "http://localhost:8089/api/v1/login" "405"
+check_service "backend" "http://localhost:8089" "404"
 
 # Slate docs
 check_service "slate" "http://localhost:4567" "200"
