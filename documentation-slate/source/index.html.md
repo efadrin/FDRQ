@@ -3,8 +3,6 @@
 title: API Reference
 
 language_tabs: # must be one of https://github.com/rouge-ruby/rouge/wiki/List-of-supported-languages-and-lexers
-  # - shell
-  # - ruby
   - python
   # - javascript
 
@@ -37,15 +35,16 @@ import requests
 import json
 from pprint import pprint
 
-# API endpoint
+base_url = "https://api.efadrin.io/api/"
+endpoint = "v1/token-validate"
+
+request_url = base_url + endpoint
 headers = {
-    "api-token": "meowmeowmeow"
+    "X-Peelhunt-Token": "meowmeowmeow"
 }
 
-url = 'http://api.efadrin.io/api/v1/authorize-token'
-
 try:
-  response = requests.post(url, headers=headers, json=payload)
+  response = requests.post(request_url, headers=headers, json=arguments)
   data = response.json()
   print(json.dumps(data, indent=2, ensure_ascii=False))
 
@@ -61,9 +60,9 @@ except Exception as e:
 
 > Make sure to replace `meowmeowmeow` with your API key.
 
-All GET request require a header X-Peelhunt-Token : apiKey. You can find your API Key after signing in [here](http://api.efadrin.io/login).
+All requests require a header X-Peelhunt-Token: api-key. You can find your API Key after signing in [HERE](http://api.efadrin.io/login).
 
-<!-- If you are logged in, your API key will be automatically used in the examples so you can copy and paste them as is. -->
+`Base URL: http://api.efadrin.io/api/`
 
 `X-Peelhunt-Token: meowmeowmeow`
 
@@ -71,24 +70,28 @@ All GET request require a header X-Peelhunt-Token : apiKey. You can find your AP
 You must replace <code>meowmeowmeow</code> with your personal API key.
 </aside>
 
-# DocSearch API
+# DocSearch
 
 The DocSearch API allows you to search and retrieve document information based on various criteria.
 
-## Endpoint
+`Endpoint: /v1/docsearch`
+
+## Arguments
 
 ```python
 import requests
 import json
 from pprint import pprint
 
-# Your configuration
-url = "https://api.efadrin.io/api/v1/docsearch"
+base_url = "https://api.efadrin.io/api/"
+endpoint = "v1/docsearch"
+
+request_url = base_url + endpoint
 headers = {
     "X-Peelhunt-Token": "meowmeowmeow"
 }
 
-payload = {
+arguments = {
     "accountName": "FDRN_PEELHUNT",
     "searchText": "trading",
     "marketIds": "GB",
@@ -98,8 +101,7 @@ payload = {
 }
 
 try:
-    # Make request
-    response = requests.post(url, headers=headers, json=payload)
+    response = requests.post(request_url, headers=headers, json=arguments)
     data = response.json()
     print(json.dumps(data, indent=2, ensure_ascii=False))
 
@@ -113,26 +115,27 @@ except Exception as e:
     print(f"Unexpected error: {e}")
 ```
 
-Host: `api.efadrin.biz`
-
-<!-- ## Arguments -->
-
 | Argument       | Type   | Description                               |
 | -------------- | ------ | ----------------------------------------- |
-| SearchText     | string | Text to search for within documents       |
-| SearchType     | string | Type of search to perform                 |
-| SearchTop      | string | Maximum number of results to return       |
-| DocGUID        | string | Unique identifier for a specific document |
-| ReportTypeID   | string | Filter by report type identifier          |
-| ReportTypeName | string | Filter by report type name                |
-| MarketIDs      | string | Filter by market identifiers              |
-| SectorIDs      | string | Filter by sector identifiers              |
-| IndustryIDs    | string | Filter by industry identifiers            |
-| AuthorIDs      | string | Filter by author identifiers              |
-| CorpIDs        | string | Filter by corporation identifiers         |
-| DateFrom       | string | Start date for document search            |
-| DateTo         | string | End date for document search              |
-| OrderNewToOld  | string | Sort order for results                    |
+| searchText     | string | Text to search for within documents       |
+| searchType     | string | Type of search to perform                 |
+| searchTop      | string | Maximum number of results to return       |
+| docGuid        | string | Unique identifier for a specific document |
+| reportTypeId   | string | Filter by report type identifier          |
+| reportTypeName | string | Filter by report type name                |
+| marketIds      | string | Filter by market identifiers              |
+| sectorIds      | string | Filter by sector identifiers              |
+| industryIds    | string | Filter by industry identifiers            |
+| authorIds      | string | Filter by author identifiers              |
+| corpIds        | string | Filter by corporation identifiers         |
+| dateFrom       | string | Start date for document search            |
+| dateTo         | string | End date for document search              |
+| orderNewToOld  | string | Sort order for results                    |
+
+### Note
+
+- Market, Sector, Industry, Author, and Corporation IDs can be provided as comma-separated values
+- The API supports both single document retrieval (using DocGUID) and multi-document search
 
 ## Response Structure
 
@@ -191,45 +194,95 @@ The API returns an JSON response containing document information. Each document 
 
 ### Header Section
 
-- RecordCount: Total number of records found
-- StatusCode: Operation status code
-- StatusMsg: Status message (if any)
+- recordCount: Total number of records found
+- statusCode: Operation status code
+- statusMsg: Status message (if any)
 
 ### Document Information
 
-- DocGUID: Unique document identifier
-- DocID: Document ID
-- DocType: Document type information with ID
-- RIXMLType: Report type name
-- Markets: List of market identifiers
-- Sectors: List of sector identifiers (if applicable)
-- Industries: List of industry identifiers (if applicable)
-- Authors: List of author identifiers
-- Corps: List of corporation identifiers (if applicable)
-- DocTitle: Document title
-- DocSynopsis: Document summary (if available)
-- PublicationDate: Document publication date
-- PublicationDateTime: Full publication timestamp
-- PublicationDateTimeNoMSecs: Publication timestamp without milliseconds
-- Rank: Document ranking
-- IsCompendium: Boolean flag indicating if document is part of a compendium
-
-## Request Examples
-
-### HTTP GET
-
-```
-GET /webapi/4/dev/efawebapi.asmx/EFADocSearch?AccountName=string&SearchText=string... HTTP/1.1
-Host: hkg.efadrin.biz
-```
+- docGuid: Unique document identifier
+- docId: Document ID
+- docType: Document type information with ID
+- rixmlType: Report type name
+- markets: List of market identifiers
+- sectors: List of sector identifiers (if applicable)
+- industries: List of industry identifiers (if applicable)
+- authors: List of author identifiers
+- corps: List of corporation identifiers (if applicable)
+- docTitle: Document title
+- docSynopsis: Document summary (if available)
+- publicationDate: Document publication date
+- publicationDateTime: Full publication timestamp
+- publicationDateTimeNoMSecs: Publication timestamp without milliseconds
+- rank: Document ranking
+- isCompendium: Boolean flag indicating if document is part of a compendium
 
 ## Error Handling
 
 The API returns a StatusCode and StatusMsg in the response header to indicate the success or failure of the request. A StatusCode of 0 typically indicates a successful request.
 
-## Notes
+# DocRetrieve
 
-- All date parameters should be provided in a string format
-- Market, Sector, Industry, Author, and Corporation IDs can be provided as comma-separated values
-- The API supports both single document retrieval (using DocGUID) and multi-document search
-- Results can be ordered from newest to oldest using the OrderNewToOld parameter
+The DocRetrieve API allows you to retrieve a document based on various criteria.
+
+`Endpoint: /v1/docretrieve`
+
+## Arguments
+
+```python
+import requests
+import json
+from pprint import pprint
+
+base_url = "https://api.efadrin.io/api/"
+endpoint = "v1/docretrieve"
+
+request_url = base_url + endpoint
+
+headers = {
+    "X-Peelhunt-Token": "meowmeowmeow"
+}
+
+arguments = {
+    "accountName": "FDRN_PEELHUNT",
+    "docGuid":"6063300d-4452-43a2-9719-f041453cd5f8",
+    "docType":"1"
+}
+
+try:
+    response = requests.post(request_url, headers=headers, json=arguments)
+    data = response.json()
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+
+except requests.exceptions.RequestException as e:
+    print(f"Error making request: {e}")
+
+except json.JSONDecodeError as e:
+    print(f"Error parsing JSON: {e}")
+
+except Exception as e:
+    print(f"Unexpected error: {e}")
+```
+
+| Argument           | Type   | Description                                                       |
+| ------------------ | ------ | ----------------------------------------------------------------- |
+| docGuid `required` | string | Unique identifier for a specific document                         |
+| docType `required` | string | Retrival formal of the document i.e. 1 = PDF, 2 = JSON, 5 = RIXML |
+
+## Response Structure
+
+The API returns an JSON response containing document information. Each document result includes:
+
+```json
+{
+  "filename": "220707_Persimmon MN BC.pdf",
+  "docGuid": "6063300d-4452-43a2-9719-f041453cd5f8",
+  "pdfBinary": "JVBERi0xLjUNCiW1tbW1DQoxIDAgb2JqDQo8PC9UeXBlL0NhdGF"
+}
+```
+
+> `pdfBinary` is in `base64` format.
+
+- fileName: Name of the PDF File
+- docGuid: Unique identifier for a specific document
+- pdfBinary: `pdfBinary` is in `base64` format.
