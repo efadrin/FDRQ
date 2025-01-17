@@ -192,9 +192,12 @@ type EFADocRetrieveRIXML struct {
 	DocRIXML DocRIXML `xml:"Body>EFADocRetrieveResponse>EFADocRetrieveResult>EFADocRetrieve>DocRIXML"`
 }
 type DocRIXML struct {
-	FileName  string `xml:"FileName"`
-	DocGUID   string `xml:"DocGUID"`
-	RIXMLData string `xml:"RIXMLData,innerxml"`
+	FileName string `xml:"FileName"`
+	DocGUID  string `xml:"DocGUID"`
+	//RIXMLData string `xml:"RIXMLData,innerxml"`
+	RIXMLData struct {
+		RIXMLData string `xml:",innerxml"`
+	} `xml:"RIXMLData"`
 }
 type EFADocSearch_Header struct {
 	RecordCount int    `xml:"RecordCount"`
@@ -439,7 +442,7 @@ func convertToJSONDocRetrieve(xmlData []byte, docType int) (interface{}, error) 
 				FileName: efaResult.FileName,
 				DocGuid:  efaResult.DocGUID,
 			},
-			RIXMLData: efaResult.RIXMLData,
+			RIXMLData: efaResult.RIXMLData.RIXMLData,
 		}
 		return response, nil
 	}
