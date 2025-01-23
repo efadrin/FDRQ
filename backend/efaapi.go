@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -68,9 +69,20 @@ type DocSearchResponse struct {
 	Documents []Document `json:"documents"`
 }
 type DocRetrieveResponse struct {
-	FileName  string `json:"filename"`
-	DocGuid   string `json:"docGuid"`
+	FileName string `json:"filename"`
+	DocGuid  string `json:"docGuid"`
+}
+type DocRetrieveResponsePDF struct {
+	DocRetrieveResponse
 	PDFBinary string `json:"pdfBinary"`
+}
+type DocRetrieveResponseTXT struct {
+	DocRetrieveResponse
+	FreeText string `json:"freeText"`
+}
+type DocRetrieveResponseRIXML struct {
+	DocRetrieveResponse
+	RIXMLData string `json:"rixmlData"`
 }
 type DocRetrieveRequest struct {
 	AccountName string `json:"accountName"`
@@ -160,10 +172,32 @@ type EFADocRetrieveResult struct {
 type EFADocRetrieve struct {
 	DocPDF DocPDF `xml:"DocPDF"`
 }
+type EFADocRetrievePDF struct {
+	DocPDF DocPDF `xml:"Body>EFADocRetrieveResponse>EFADocRetrieveResult>EFADocRetrieve>DocPDF"`
+}
 type DocPDF struct {
 	FileName  string `xml:"FileName"`
 	DocGUID   string `xml:"DocGUID"`
 	PDFBinary string `xml:"PDFBinary"`
+}
+type EFADocRetrieveTXT struct {
+	DocText DocText `xml:"Body>EFADocRetrieveResponse>EFADocRetrieveResult>EFADocRetrieve>DocText"`
+}
+type DocText struct {
+	FileName string `xml:"FileName"`
+	DocGUID  string `xml:"DocGUID"`
+	FreeText string `xml:"FreeText"`
+}
+type EFADocRetrieveRIXML struct {
+	DocRIXML DocRIXML `xml:"Body>EFADocRetrieveResponse>EFADocRetrieveResult>EFADocRetrieve>DocRIXML"`
+}
+type DocRIXML struct {
+	FileName string `xml:"FileName"`
+	DocGUID  string `xml:"DocGUID"`
+	//RIXMLData string `xml:"RIXMLData,innerxml"`
+	RIXMLData struct {
+		RIXMLData string `xml:",innerxml"`
+	} `xml:"RIXMLData"`
 }
 type EFADocSearch_Header struct {
 	RecordCount int    `xml:"RecordCount"`
@@ -363,31 +397,57 @@ func convertToJSON(xmlData []byte) (*DocSearchResponse, error) {
 	return response, nil
 	//return nil, nil
 }
-func convertToJSONDocRetrieve(xmlData []byte) (*DocRetrieveResponse, error) {
-	var xmlResp XMLResponseDocRetrieve
+func convertToJSONDocRetrieve(xmlData []byte, docType int) (interface{}, error) {
 
-	if err := xml.Unmarshal(xmlData, &xmlResp); err != nil {
-		return nil, fmt.Errorf("error unmarshaling SOAP response: %v", err)
-	}
-
-	fmt.Printf("DocSearch - EFA Response Body: %d\n", xmlResp.Body.EFADocRetrieveResponse.EFADocRetrieveResult.EFADocRetrieve.DocPDF.FileName)
-
-	/*
-		var efaResult EFADocSearchResult
-		if err := xml.Unmarshal([]byte(xmlResp.Body.EFADocSearchResponse.EFADocSearchResult), &efaResult); err != nil {
-			return nil, fmt.Errorf("error unmarshaling search result: %v", err)
+	if docType == 1 {
+		// PDF
+		//var efaResult DocPDF = xmlResp.Body.EFADocRetrieveResponse.EFADocRetrieveResult.EFADocRetrieve.DocPDF
+		var xmlResp EFADocRetrievePDF
+		if err := xml.Unmarshal(xmlData, &xmlResp); err != nil {
+			return nil, fmt.Errorf("error unmarshaling SOAP response: %v", err)
 		}
-	*/
-
-	var efaResult DocPDF = xmlResp.Body.EFADocRetrieveResponse.EFADocRetrieveResult.EFADocRetrieve.DocPDF
-	response := &DocRetrieveResponse{
-		FileName:  efaResult.FileName,
-		DocGuid:   efaResult.DocGUID,
-		PDFBinary: efaResult.PDFBinary,
+		var efaResult DocPDF = xmlResp.DocPDF
+		response := &DocRetrieveResponsePDF{
+			DocRetrieveResponse: DocRetrieveResponse{
+				FileName: efaResult.FileName,
+				DocGuid:  efaResult.DocGUID,
+			},
+			PDFBinary: efaResult.PDFBinary,
+		}
+		return response, nil
+	} else if docType == 4 {
+		// TXT
+		var xmlResp EFADocRetrieveTXT
+		if err := xml.Unmarshal(xmlData, &xmlResp); err != nil {
+			return nil, fmt.Errorf("error unmarshaling SOAP response: %v", err)
+		}
+		var efaResult DocText = xmlResp.DocText
+		response := &DocRetrieveResponseTXT{
+			DocRetrieveResponse: DocRetrieveResponse{
+				FileName: efaResult.FileName,
+				DocGuid:  efaResult.DocGUID,
+			},
+			FreeText: efaResult.FreeText,
+		}
+		return response, nil
+	} else if docType == 5 {
+		// XML
+		var xmlResp EFADocRetrieveRIXML
+		if err := xml.Unmarshal(xmlData, &xmlResp); err != nil {
+			return nil, fmt.Errorf("error unmarshaling SOAP response: %v", err)
+		}
+		var efaResult DocRIXML = xmlResp.DocRIXML
+		response := &DocRetrieveResponseRIXML{
+			DocRetrieveResponse: DocRetrieveResponse{
+				FileName: efaResult.FileName,
+				DocGuid:  efaResult.DocGUID,
+			},
+			RIXMLData: efaResult.RIXMLData.RIXMLData,
+		}
+		return response, nil
 	}
+	return nil, nil
 
-	return response, nil
-	//return nil, nil
 }
 
 // API handler
@@ -604,7 +664,12 @@ func DocRetrieveHandler(config Config, keyStore APIKeyStore) http.HandlerFunc {
 		//str1 := string(body[:])
 		//fmt.Printf("DocRetrieve - EFA Response Body: %s", str1)
 		// Convert XML to JSON
-		jsonResponse, err := convertToJSONDocRetrieve(body)
+		iDocType, err := strconv.Atoi(req.DocType)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error converting DocTyoe: %v", err), http.StatusInternalServerError)
+			return
+		}
+		jsonResponse, err := convertToJSONDocRetrieve(body, iDocType)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error converting response: %v", err), http.StatusInternalServerError)
 			return
@@ -615,8 +680,8 @@ func DocRetrieveHandler(config Config, keyStore APIKeyStore) http.HandlerFunc {
 		json.NewEncoder(w).Encode(jsonResponse)
 
 		// Log successful request completion
-		fmt.Printf("Completed DocSearch request for user %d with %d results\n",
-			userID, jsonResponse.FileName)
+		fmt.Printf("Completed DocRetrieve request for user %d with %d results\n",
+			userID, jsonResponse)
 	}
 }
 func main() {
