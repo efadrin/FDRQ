@@ -57,10 +57,10 @@ func main() {
 
     // Then create the CORS handler
     c := cors.New(cors.Options{
-        AllowedOrigins:     []string{"*"},
+        AllowedOrigins:     []string{"http://localhost:5173"},
         AllowedMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowedHeaders:     []string{"Content-Type", "Authorization"},
-        AllowCredentials:   false,
+        AllowedHeaders:     []string{"Content-Type", "Authorization", "X-Peelhunt-Token"},
+        AllowCredentials:   true,
         Debug:             true,
     })
 
@@ -69,7 +69,7 @@ func main() {
     
     // Add Swagger handler
     server.Router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-        httpSwagger.URL("https://api.efadrin.io/api/v1/swagger/doc.json"),
+        httpSwagger.URL("/swagger/doc.json"),
     ))
     
     // Start the server
