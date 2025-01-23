@@ -19,8 +19,8 @@ type Server struct {
 	Router    *mux.Router
 	DB        *gorm.DB
 	StartTime time.Time
-	Config    Config      // Add this
-	KeyStore  APIKeyStore // Add this
+	Config    Config   
+	KeyStore  APIKeyStore
 }
 
 func NewServer(db *gorm.DB) *Server {

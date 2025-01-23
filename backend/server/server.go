@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+    // LOCAL RUN
     // err := godotenv.Load()
 
     // if err != nil {
@@ -65,7 +66,7 @@ func main() {
     
     // Add Swagger handler
     server.Router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-        httpSwagger.URL("https://api.efadrin.io/api/v1/swagger/doc.json"),
+        httpSwagger.URL("/swagger/doc.json"),
     ))
     
     // Start the server
