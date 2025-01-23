@@ -47,6 +47,8 @@ type Claims struct {
 
 func (s *Server) RunServer(port int) {
 
+	s.Router.HandleFunc("/swagger/doc.json", s.ServeOpenAPISpec)
+
 	// Login route
 	s.Router.HandleFunc("/api/v1/login", s.Login).Methods("POST")
 
@@ -85,6 +87,15 @@ func (s *Server) RunServer(port int) {
 	fmt.Printf("Server starting on port %d...\n", port)
 }
 
+func (s *Server) ServeOpenAPISpec(w http.ResponseWriter, r *http.Request) {
+    http.ServeFile(w, r, "docs/openapi.yaml")
+}
+
+// @Summary User login
+// @Param username_or_email body string true "Username or email"
+// @Param password body string true "Password"
+// @Success 200 {object} LoginResponse
+// @Router /login [post]
 func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 	var loginRequest struct {
 		UsernameOrEmail string `json:"username_or_email"`
