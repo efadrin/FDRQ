@@ -1,0 +1,251 @@
+openapi: 3.0.0
+info:
+  title: EFA API Service
+  version: 1.0.0
+  description: API for document search and retrieval with user management
+
+servers:
+  - url: /api/v1
+    description: Base API path
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Peelhunt-Token
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        organization:
+          $ref: "#/components/schemas/Organization"
+      required:
+        - username
+        - email
+        - password
+
+    Organization:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+        expiryDate:
+          type: string
+          format: date-time
+        isApiToken:
+          type: boolean
+        userId:
+          type: integer
+
+    DocSearchRequest:
+      type: object
+      properties:
+        accountName:
+          type: string
+        searchText:
+          type: string
+        searchType:
+          type: string
+        searchTop:
+          type: string
+        languageId:
+          type: string
+        docGuid:
+          type: string
+        reportTypeId:
+          type: string
+        reportTypeName:
+          type: string
+        marketIds:
+          type: string
+        sectorIds:
+          type: string
+        industryIds:
+          type: string
+        authorIds:
+          type: string
+        corpIds:
+          type: string
+        dateFrom:
+          type: string
+        dateTo:
+          type: string
+        orderNewToOld:
+          type: string
+
+    DocSearchResponse:
+      type: object
+      properties:
+        header:
+          type: object
+          properties:
+            recordCount:
+              type: integer
+            statusCode:
+              type: integer
+            statusMsg:
+              type: string
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/Document"
+
+    Document:
+      type: object
+      properties:
+        docGuid:
+          type: string
+        docId:
+          type: integer
+        docTitle:
+          type: string
+        docSynopsis:
+          type: string
+        publicationDate:
+          type: string
+        publicationDateTime:
+          type: string
+        rank:
+          type: integer
+        isCompendium:
+          type: boolean
+
+paths:
+  /login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username_or_email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  api_token:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/User"
+
+  /users:
+    get:
+      summary: Get all users
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+    post:
+      summary: Create new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /docsearch:
+    post:
+      summary: Search documents
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocSearchRequest"
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocSearchResponse"
+
+  /docretrieve:
+    post:
+      summary: Retrieve document
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accountName:
+                  type: string
+                docGUID:
+                  type: string
+                docType:
+                  type: string
+      responses:
+        "200":
+          description: Retrieved document
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  filename:
+                    type: string
+                  docGuid:
+                    type: string
+                  pdfBinary:
+                    type: string
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []

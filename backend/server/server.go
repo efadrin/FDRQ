@@ -8,18 +8,23 @@ import (
 	"os"
 
 	"github.com/efadrin/apitoken"
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func main() {
-    // err := godotenv.Load()
+    err := godotenv.Load()
 
-    // if err != nil {
-    //     log.Fatalf("Error loading .env file")
-    //     fmt.Println("Error loading .env file")
-    // }
+    if err != nil {
+        log.Fatalf("Error loading .env file")
+        fmt.Println("Error loading .env file")
+    }
+
+
+
 
     // Get the database URL from the environment variable
     dsn := os.Getenv("DATABASE_URL")
@@ -44,6 +49,8 @@ func main() {
     }
 
 	server := apitoken.NewServer(db)
+
+
     
     // Set up the routes first and then start the server
     server.RunServer(*port)
@@ -59,6 +66,11 @@ func main() {
 
     // Wrap the router with CORS
     handler := c.Handler(server.Router)
+    
+    // Add Swagger handler
+    server.Router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+        httpSwagger.URL("/swagger/doc.json"),
+    ))
     
     // Start the server
     if err := http.ListenAndServe(fmt.Sprintf(":%d", *port), handler); err != nil {
