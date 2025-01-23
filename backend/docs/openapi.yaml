@@ -5,7 +5,7 @@ info:
   description: API for document search and retrieval with user management
 
 servers:
-  - url: /api/v1
+  - url: https://api.efadrin.io/api/v1
     description: Base API path
 
 components:
