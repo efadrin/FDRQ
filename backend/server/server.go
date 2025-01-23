@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/efadrin/apitoken"
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"gorm.io/driver/postgres"
@@ -16,12 +17,12 @@ import (
 
 func main() {
     // LOCAL RUN
-    // err := godotenv.Load()
+    err := godotenv.Load()
 
-    // if err != nil {
-    //     log.Fatalf("Error loading .env file")
-    //     fmt.Println("Error loading .env file")
-    // }
+    if err != nil {
+        log.Fatalf("Error loading .env file")
+        fmt.Println("Error loading .env file")
+    }
 
     // Get the database URL from the environment variable
     dsn := os.Getenv("DATABASE_URL")
@@ -66,7 +67,9 @@ func main() {
     
     // Add Swagger handler
     server.Router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-        httpSwagger.URL("/swagger/doc.json"),
+        // httpSwagger.URL("/swagger/doc.json"),
+        httpSwagger.URL("https://api.efadrin.io/swagger/doc.json"),
+        httpSwagger.DocExpansion("none"),
     ))
     
     // Start the server
