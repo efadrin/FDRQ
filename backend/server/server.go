@@ -66,7 +66,7 @@ func main() {
     handler := c.Handler(server.Router)
     
     // Add Swagger handler
-    server.Router.PathPrefix("/swagger").Handler(httpSwagger.Handler(
+    server.Router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
         httpSwagger.URL("/swagger/doc.json"),
     //  httpSwagger.URL("https://api.efadrin.io/swagger/doc.json"),
         httpSwagger.DocExpansion("none"),
